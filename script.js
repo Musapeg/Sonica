@@ -5,38 +5,39 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let audioCtx, analyser, dataArray, source;
 
-    btn.addEventListener('click', () => {
-        // 1. Inicializar el contexto de audio
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            analyser = audioCtx.createAnalyser();
-            
-            // CONEXIÓN CRÍTICA:
-            source = audioCtx.createMediaElementSource(audio);
-            source.connect(analyser);
-            analyser.connect(audioCtx.destination);
-            
-            analyser.fftSize = 64; 
-            dataArray = new Uint8Array(analyser.frequencyBinCount);
-        }
-
-        // 2. Intentar reproducir
-        if (audio.paused) {
-            // Forzar el reinicio del contexto si estaba suspendido (común en Chrome)
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
+    btn.addEventListener('click', async () => {
+        try {
+            // 1. Iniciar motor de audio
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+                analyser = audioCtx.createAnalyser();
+                
+                source = audioCtx.createMediaElementSource(audio);
+                source.connect(analyser);
+                analyser.connect(audioCtx.destination);
+                
+                analyser.fftSize = 64; 
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
             }
 
-            audio.play().then(() => {
+            // 2. Despertar audio si el navegador lo bloqueó
+            if (audioCtx.state === 'suspended') {
+                await audioCtx.resume();
+            }
+
+            // 3. Reproducir o Pausar
+            if (audio.paused) {
+                await audio.play();
                 btn.innerText = "⏸ PAUSAR";
                 render();
-            }).catch(err => {
-                console.error("Error al reproducir:", err);
-                alert("Error: Asegúrate de que musica.mp3 esté en la carpeta principal de GitHub.");
-            });
-        } else {
-            audio.pause();
-            btn.innerText = "▶ REPRODUCIR";
+            } else {
+                audio.pause();
+                btn.innerText = "▶ REPRODUCIR";
+            }
+        } catch (error) {
+            console.error("Error crítico de audio:", error);
+            alert("No se pudo reproducir. Asegúrate de que tu archivo se llame exactamente 'musica.mp3' en GitHub.");
         }
     });
 
@@ -49,7 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
         flames.forEach((flame, i) => {
             let index = Math.floor(i * (dataArray.length / flames.length));
             let val = dataArray[index] / 150; 
-            // Aplicamos la escala (el 0.3 es el tamaño mínimo de la llama)
             flame.style.transform = `scaleY(${0.3 + val})`;
         });
     }
