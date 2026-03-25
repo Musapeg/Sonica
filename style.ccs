@@ -1,0 +1,65 @@
+body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; padding: 0; overflow-y: auto; }
+
+.rubens-main-container {
+  display: flex;
+  flex-wrap: wrap; /* Para que en móviles se ponga uno abajo de otro */
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding: 50px 20px;
+  min-height: 400px;
+}
+
+.rubens-text-column {
+  flex: 1;
+  max-width: 400px; /* Evita que el texto se estire mucho */
+  line-height: 1.6;
+}
+
+.rubens-visual-column {
+  flex: 1;
+  max-width: 450px; /* Limita el tamaño del experimento */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#playButton {
+  background: #ff4500;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.graphics-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  width: 100%;
+}
+
+.devices {
+  width: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.icon-svg { width: 100%; height: auto; }
+.rubens-svg { flex: 1; height: auto; max-width: 300px; }
+
+.flame {
+  transform-origin: bottom center;
+  mix-blend-mode: screen;
+  filter: url(#flame-blur);
+  transition: transform 0.1s ease-out;
+}
+
+.purple { fill: url(#grad-purple); filter: drop-shadow(0 0 5px #b000ff); }
+.blue   { fill: url(#grad-blue);   filter: drop-shadow(0 0 5px #00bbff); }
+.green  { fill: url(#grad-green);  filter: drop-shadow(0 0 5px #00ff88); }
+.yellow { fill: url(#grad-yellow); filter: drop-shadow(0 0 5px #ffb400); }
