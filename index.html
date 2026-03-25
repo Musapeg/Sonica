@@ -1,6 +1,112 @@
-<link rel="stylesheet" href="style.css">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sónica - Experimento</title>
+    
+    <style>
+        /* AQUÍ PEGA TODO LO QUE TIENES EN EL CUADRO "CSS" DE CODEPEN */
+      body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; padding: 0; overflow-y: auto; }
 
-<script src="script.js" defer></script>
+.rubens-main-container {
+  display: flex;
+  flex-wrap: wrap; /* Para que en móviles se ponga uno abajo de otro */
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  padding: 50px 20px;
+  min-height: 400px;
+}
+
+.rubens-text-column {
+  flex: 1;
+  max-width: 400px; /* Evita que el texto se estire mucho */
+  line-height: 1.6;
+}
+
+.rubens-visual-column {
+  flex: 1;
+  max-width: 450px; /* Limita el tamaño del experimento */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+#playButton {
+  background: #ff4500;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.graphics-area {
+  display: flex;
+  align-items: flex-end;
+  gap: 15px;
+  width: 100%;
+}
+
+.devices {
+  width: 60px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.icon-svg { width: 100%; height: auto; }
+.rubens-svg { flex: 1; height: auto; max-width: 300px; }
+
+.flame {
+  transform-origin: bottom center;
+  mix-blend-mode: screen;
+  filter: url(#flame-blur);
+  transition: transform 0.1s ease-out;
+}
+
+.purple { fill: url(#grad-purple); filter: drop-shadow(0 0 5px #b000ff); }
+.blue   { fill: url(#grad-blue);   filter: drop-shadow(0 0 5px #00bbff); }
+.green  { fill: url(#grad-green);  filter: drop-shadow(0 0 5px #00ff88); }
+.yellow { fill: url(#grad-yellow); filter: drop-shadow(0 0 5px #ffb400); }
+    </style>
+</head>
+
+<body> <script>
+        /* AQUÍ PEGA TODO LO QUE TIENES EN EL CUADRO "JS" DE CODEPEN */
+  const audio = document.getElementById('audioElement');
+const btn = document.getElementById('playButton');
+const flames = document.querySelectorAll('.flame');
+let audioCtx, analyser, dataArray;
+
+btn.addEventListener('click', () => {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    const source = audioCtx.createMediaElementSource(audio);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    analyser.fftSize = 32;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+  }
+  if (audio.paused) { audio.play(); btn.innerText = "⏸ PAUSAR"; render(); } 
+  else { audio.pause(); btn.innerText = "▶ REPRODUCIR"; }
+});
+
+function render() {
+  if (audio.paused) return;
+  requestAnimationFrame(render);
+  analyser.getByteFrequencyData(dataArray);
+  flames.forEach((flame, i) => {
+    let val = dataArray[i % 8] / 150;
+    flame.style.transform = `scaleY(${0.3 + val})`;
+  });
+}
+    </script>
+
+</body> </html>
 
 <title>SÓNICA — Donde el sonido se vuelve visible</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
@@ -797,7 +903,7 @@
     
     <div class="controls-area">
       <button id="playButton">▶ ACTIVAR EXPERIMENTO</button>
-      <audio id="audioElement" crossorigin="anonymous" src="https://assets.codepen.io/15047/Goat+-+Vessel.mp3"></audio>
+      <audio id="audioElement" crossorigin="anonymous" src="musica.mp3"></audio>
     </div>
 
     <div class="graphics-area">
