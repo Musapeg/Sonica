@@ -1,1968 +1,212 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SÓNICA - Donde el sonido se vuelve visible</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-
-<style>
-  :root {
-    --fire: #FF4B12;
-    --ember: #FF8C00;
-    --plasma: #FFD700;
-    --ether: #00BFFF;
-    --void: #050508;
-    --smoke: #1a1a24;
-    --mist: #2d2d3e;
-    --ash: #6b6b85;
-    --ghost: #b0b0c8;
-    --white: #f0f0f8;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--void);
-    color: var(--white);
-    font-family: 'Space Grotesk', sans-serif;
-    overflow-x: hidden;
-  }
-
-  /* ── NOISE OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.35;
-  }
-
-  /* ── HERO ── */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    padding: 4rem 2rem;
-    overflow: hidden;
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 110%, rgba(255,75,18,0.18) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(0,191,255,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 80% 30%, rgba(255,215,0,0.05) 0%, transparent 50%),
-      var(--void);
-    z-index: 0;
-  }
-
-  /* Animated flame particles */
-  .particles {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .particle {
-    position: absolute;
-    bottom: -20px;
-    width: 3px;
-    border-radius: 50%;
-    animation: rise linear infinite;
-    opacity: 0;
-  }
-
-  @keyframes rise {
-    0%   { transform: translateY(0) scaleX(1); opacity: 0; }
-    10%  { opacity: 0.8; }
-    50%  { transform: translateY(-40vh) scaleX(1.5) translateX(20px); opacity: 0.4; }
-    100% { transform: translateY(-100vh) scaleX(0.3) translateX(-10px); opacity: 0; }
-  }
-
-  .hero-content { position: relative; z-index: 2; max-width: 900px; }
-
-  .eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 300;
-    letter-spacing: 0.3em;
-    color: var(--fire);
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeUp 0.8s ease 0.3s forwards;
-  }
-
-  .hero-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(6rem, 18vw, 14rem);
-    line-height: 0.88;
-    letter-spacing: -0.02em;
-    color: var(--white);
-    margin-bottom: 0.5rem;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 0.5s forwards;
-  }
-
-  .hero-title span {
-    display: block;
-    background: linear-gradient(135deg, var(--fire) 0%, var(--ember) 40%, var(--plasma) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .hero-sub {
-    font-size: clamp(1rem, 2.5vw, 1.4rem);
-    font-weight: 300;
-    color: var(--ghost);
-    line-height: 1.6;
-    max-width: 600px;
-    margin: 2rem auto 3rem;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 0.8s forwards;
-  }
-
-  .hero-badges {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 1s forwards;
-  }
-
-  .badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.5rem 1.2rem;
-    border: 1px solid;
-    border-radius: 100px;
-  }
-
-  .badge-fire { border-color: var(--fire); color: var(--fire); }
-  .badge-ether { border-color: var(--ether); color: var(--ether); }
-  .badge-gold { border-color: var(--plasma); color: var(--plasma); }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 1.5s forwards;
-  }
-
-  .scroll-line {
-    width: 1px;
-    height: 50px;
-    background: linear-gradient(to bottom, var(--fire), transparent);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  .scroll-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    color: var(--ash);
-    text-transform: uppercase;
-  }
-
-  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── SECTION BASE ── */
-  section { padding: 7rem 2rem; position: relative; }
-  .container { max-width: 1100px; margin: 0 auto; }
-
-  .section-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--fire);
-    margin-bottom: 1.5rem;
-  }
-
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(3rem, 7vw, 5.5rem);
-    line-height: 0.95;
-    letter-spacing: 0.01em;
-    margin-bottom: 2rem;
-  }
-
-  /* ── CONCEPT SECTION ── */
-  .concept { background: var(--smoke); }
-
-  .concept-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-  }
-
-  .concept-text p {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: var(--ghost);
-    margin-bottom: 1.5rem;
-  }
-
-  .concept-text strong { color: var(--white); font-weight: 500; }
-
-  .concept-visual {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Ruben's tube SVG illustration */
-  .tube-wrap { width: 100%; max-width: 440px; }
-
-  /* ── PHYSICS SECTION ── */
-  .physics { background: var(--void); }
-
-  .physics-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-top: 4rem;
-  }
-
-  .phys-card {
-    background: var(--smoke);
-    border: 1px solid rgba(255,75,18,0.15);
-    border-radius: 4px;
-    padding: 2.5rem 2rem;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s;
-  }
-
-  .phys-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--fire), var(--plasma));
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .phys-card:hover { border-color: rgba(255,75,18,0.4); }
-  .phys-card:hover::before { opacity: 1; }
-
-  .phys-number {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 5rem;
-    line-height: 1;
-    color: rgba(255,75,18,0.12);
-    position: absolute;
-    top: 1rem; right: 1.5rem;
-  }
-
-  .phys-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    display: block;
-  }
-
-  .phys-card h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--white);
-  }
-
-  .phys-card p {
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--ash);
-  }
-
-  /* ── EXPERIENCE SECTION ── */
-  .experience { background: var(--smoke); overflow: hidden; }
-
-  .exp-timeline {
-    position: relative;
-    margin-top: 4rem;
-  }
-
-  .exp-timeline::before {
-    content: '';
-    position: absolute;
-    left: 28px;
-    top: 0; bottom: 0;
-    width: 1px;
-    background: linear-gradient(to bottom, var(--fire), transparent);
-  }
-
-  .exp-step {
-    display: flex;
-    gap: 3rem;
-    margin-bottom: 4rem;
-    align-items: flex-start;
-  }
-
-  .exp-dot {
-    width: 57px;
-    height: 57px;
-    border-radius: 50%;
-    background: var(--void);
-    border: 1px solid var(--fire);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    color: var(--fire);
-    position: relative;
-    z-index: 1;
-  }
-
-  .exp-body h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.75rem;
-  }
-
-  .exp-body p {
-    font-size: 0.95rem;
-    line-height: 1.8;
-    color: var(--ash);
-    max-width: 600px;
-  }
-
-  /* ── MARKETS ── */
-  .markets { background: var(--void); }
-
-  .markets-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-top: 4rem;
-  }
-
-  .market-card {
-    border: 1px solid var(--mist);
-    border-radius: 2px;
-    padding: 3rem 2rem 2.5rem;
-    position: relative;
-    background: transparent;
-    overflow: hidden;
-    transition: all 0.3s;
-    cursor: default;
-  }
-
-  .market-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .market-card.museo::after { background: radial-gradient(circle at 50% 100%, rgba(0,191,255,0.06), transparent 70%); }
-  .market-card.live::after  { background: radial-gradient(circle at 50% 100%, rgba(255,75,18,0.06), transparent 70%); }
-  .market-card.rave::after  { background: radial-gradient(circle at 50% 100%, rgba(255,215,0,0.06), transparent 70%); }
-
-  .market-card:hover { border-color: var(--ash); transform: translateY(-4px); }
-  .market-card:hover::after { opacity: 1; }
-
-  .market-tag {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    display: block;
-  }
-
-  .museo .market-tag { color: var(--ether); }
-  .live  .market-tag { color: var(--fire); }
-  .rave  .market-tag { color: var(--plasma); }
-
-  .market-card h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
-    line-height: 1;
-    margin-bottom: 1rem;
-    letter-spacing: 0.03em;
-  }
-
-  .market-card p {
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--ash);
-    margin-bottom: 1.5rem;
-  }
-
-  .market-perks {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .market-perks li {
-    font-size: 0.82rem;
-    color: var(--ghost);
-    padding-left: 1.2rem;
-    position: relative;
-  }
-
-  .market-perks li::before {
-    content: '—';
-    position: absolute;
-    left: 0;
-    color: var(--ash);
-  }
-
-  /* ── TECH SPEC ── */
-  .tech { background: var(--smoke); }
-
-  .spec-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
-    margin-top: 4rem;
-    align-items: start;
-  }
-
-  .spec-list { list-style: none; }
-
-  .spec-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .spec-item:last-child { border-bottom: none; }
-
-  .spec-key {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    color: var(--ash);
-    text-transform: uppercase;
-  }
-
-  .spec-val {
-    font-size: 0.95rem;
-    color: var(--white);
-    font-weight: 500;
-    text-align: right;
-  }
-
-  .spec-val.fire { color: var(--fire); }
-  .spec-val.gold { color: var(--plasma); }
-
-  .differentiators { }
-
-  .diff-item {
-    padding: 2rem;
-    background: var(--void);
-    border-left: 2px solid var(--fire);
-    margin-bottom: 1rem;
-  }
-
-  .diff-item h4 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--white);
-  }
-
-  .diff-item p {
-    font-size: 0.85rem;
-    line-height: 1.6;
-    color: var(--ash);
-  }
-
-  /* ── CTA ── */
-  .cta-section {
-    background: var(--void);
-    text-align: center;
-    padding: 10rem 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cta-bg {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 50% at 50% 80%, rgba(255,75,18,0.12), transparent 70%);
-    pointer-events: none;
-  }
-
-  .cta-section .section-title {
-    font-size: clamp(3.5rem, 9vw, 7rem);
-    position: relative;
-    z-index: 1;
-  }
-
-  .cta-section p {
-    font-size: 1.1rem;
-    color: var(--ghost);
-    max-width: 500px;
-    margin: 1.5rem auto 3rem;
-    line-height: 1.7;
-    position: relative;
-    z-index: 1;
-  }
-
-  .cta-buttons {
-    display: flex;
-    gap: 1.2rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 1;
-  }
-
-  .btn-primary {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 1.1rem 2.8rem;
-    background: linear-gradient(135deg, var(--fire), var(--ember));
-    color: #fff;
-    border: none;
-    border-radius: 2px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: opacity 0.2s, transform 0.2s;
-  }
-
-  .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
-
-  .btn-secondary {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 1.1rem 2.8rem;
-    background: transparent;
-    color: var(--ghost);
-    border: 1px solid var(--mist);
-    border-radius: 2px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: border-color 0.2s, color 0.2s;
-  }
-
-  .btn-secondary:hover { border-color: var(--ash); color: var(--white); }
-
-  /* ── NAV ── */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(to bottom, rgba(5,5,8,0.95), transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .nav-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.1em;
-    color: var(--white);
-    text-decoration: none;
-  }
-
-  .nav-logo span { color: var(--fire); }
-
-  .nav-links {
-    display: flex;
-    gap: 2.5rem;
-    list-style: none;
-  }
-
-  .nav-links a {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ash);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .nav-links a:hover { color: var(--white); }
-
-  /* ── QUOTE BAND ── */
-  .quote-band {
-    background: linear-gradient(135deg, rgba(255,75,18,0.08), rgba(255,215,0,0.05));
-    border-top: 1px solid rgba(255,75,18,0.2);
-    border-bottom: 1px solid rgba(255,75,18,0.2);
-    padding: 5rem 2rem;
-    text-align: center;
-  }
-
-  .big-quote {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2rem, 5vw, 3.8rem);
-    letter-spacing: 0.05em;
-    line-height: 1.2;
-    color: var(--white);
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .big-quote em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--fire), var(--plasma));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .concept-grid { grid-template-columns: 1fr; gap: 3rem; }
-    .physics-cards { grid-template-columns: 1fr; }
-    .markets-grid { grid-template-columns: 1fr; }
-    .spec-grid { grid-template-columns: 1fr; gap: 3rem; }
-    .nav-links { display: none; }
-    .concept-visual { height: 360px; }
-  }
-
-  /* ── WAVE ANIMATION ── */
-  .wave-canvas {
-    width: 100%;
-    height: 120px;
-    display: block;
-    margin: 3rem 0 0;
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    background: var(--void);
-    padding: 3rem 2rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  footer .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    color: var(--ash);
-  }
-
-  footer .logo span { color: var(--fire); }
-
-  footer p {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    color: var(--ash);
-    text-transform: uppercase;
-  }
-</style>
-</head>
-<body>
-
-<!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo">SÓ<span>NICA</span></a>
-  <ul class="nav-links">
-    <li><a href="#concepto">Concepto</a></li>
-    <li><a href="#fisica">Física</a></li>
-    <li><a href="#experiencia">Experiencia</a></li>
-    <li><a href="#mercados">Mercados</a></li>
-    <li><a href="#contacto">Contacto</a></li>
-  </ul>
-</nav>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-
-  <!-- Particles -->
-  <div class="particles" id="particles"></div>
-
-  <div class="hero-content">
-    <p class="eyebrow">Una propuesta para museos · shows en vivo · raves</p>
-    <h1 class="hero-title">
-      SÓ<span>NICA</span>
-    </h1>
-    <p class="hero-sub">
-      Una experiencia multisensorial donde la física del sonido se convierte en fuego,<br>
-      luz y vibración. Escucha con los ojos.
-    </p>
-    <div class="hero-badges">
-      <span class="badge badge-fire">Theremin</span>
-      <span class="badge badge-fire">Tubo de Rubens</span>
-      <span class="badge badge-ether">Radiación de Color</span>
-      <span class="badge badge-gold">Física del Sonido</span>
-    </div>
-  </div>
-
-  <div class="scroll-hint">
-    <span class="scroll-label">Descubre</span>
-    <div class="scroll-line"></div>
-  </div>
-</section>
-
-<!-- QUOTE BAND -->
-<div class="quote-band">
-  <p class="big-quote">
-    "No solo escuchas la música.<br>
-    <em>La ves arder.</em>"
-  </p>
-</div>
-
-<!-- CONCEPTO -->
-<section class="concept" id="concepto">
-  <div class="container">
-    <div class="concept-grid">
-      <div class="concept-text">
-        <p class="section-label">El concepto</p>
-        <h2 class="section-title">Donde la física<br>toca el arte</h2>
-        <p>
-          <strong>SÓNICA</strong> es una instalación musical interactiva que hace visible lo invisible:
-          las ondas de sonido. En su centro, un <strong>theremin</strong> —el único instrumento del mundo
-          que se toca sin contacto físico— genera frecuencias que controlan todo en tiempo real.
-        </p>
-        <p>
-          Esas frecuencias viajan a través de un <strong>Tubo de Rubens</strong> modificado:
-          una cámara de gas con llamas que dibujan la forma exacta de cada nota, mostrando
-          nodos y antinodos de las ondas estacionarias. La música literalmente se convierte en fuego.
-        </p>
-        <p>
-          Simultáneamente, el sistema traduce las frecuencias sonoras en una respuesta térmica sobre
-          <strong>sales metálicas</strong>. Esto genera una <strong>emisión espectral de color real</strong>,
-          producida por las transiciones electrónicas de los elementos químicos sobre el sistema.
-        </p>
-        <p>
-          Y el sistema no se limita al theremin: funciona como un <strong>parlante de alta potencia</strong>,
-          capaz de recibir cualquier señal de audio —música, voz, sintetizadores, señales de DJ—
-          y convertirla en patrones de llama en tiempo real. Una interfaz de sonido universal
-          para cualquier contexto musical.
-        </p>
-      </div>
-      
-<div class="rubens-main-container">
-  
-  <div class="rubens-text-column">
-    <h2>Tubo de Rubens</h2>
-    <p>El theremin genera frecuencias que controlan todo en tiempo real. Estas frecuencias viajan a través de un tubo modificado: una cámara de gas con llamas que dibujan la forma exacta de cada nota.</p>
-    <p>La música literalmente se ve a través del fuego.</p>
-  </div>
-
-  <div class="rubens-visual-column">
-    
-    <div class="controls-area">
-      <button id="playButton">▶ ACTIVAR EXPERIMENTO</button>
-      <audio id="audioElement" crossorigin="anonymous" src="https://assets.codepen.io/15047/Goat+-+Vessel.mp3"></audio>
-    </div>
-
-    <div class="graphics-area">
-      <div class="devices">
-        <svg class="icon-svg" viewBox="0 0 120 120">
-          <rect x="10" y="60" width="100" height="40" rx="8" fill="#181818" stroke="#777" stroke-width="2"/>
-          <rect x="58" y="5" width="4" height="40" fill="#ccc"/>
-        </svg>
-        <svg class="icon-svg" viewBox="0 0 120 120">
-          <rect x="20" y="20" width="80" height="80" rx="10" fill="#181818" stroke="#777" stroke-width="2"/>
-          <circle cx="60" cy="60" r="28" fill="#2b2b2b" stroke="#666" stroke-width="2"/>
-        </svg>
-      </div>
-
-      <svg class="rubens-svg" viewBox="0 0 400 160">
-        <defs>
-          <filter id="flame-blur"><feGaussianBlur stdDeviation="1.5" /></filter>
-          <linearGradient id="grad-purple" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#b000ff"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-          <linearGradient id="grad-blue" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#00bbff"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-          <linearGradient id="grad-green" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#00ff88"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-          <linearGradient id="grad-yellow" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#ffb400"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-        </defs>
-        <rect x="20" y="110" width="360" height="25" rx="10" fill="#222" stroke="#777" stroke-width="2"/>
-        <g class="flames">
-          <path class="flame purple" d="M45 122 C 40 100, 42 70, 45 40 C 48 70, 50 100, 45 122 Z"/>
-          <path class="flame purple" d="M75 122 C 70 100, 72 75, 75 45 C 78 75, 80 100, 75 122 Z"/>
-          <path class="flame blue" d="M135 122 C 130 100, 132 75, 135 45 C 138 75, 140 100, 135 122 Z"/>
-          <path class="flame blue" d="M165 122 C 160 100, 162 72, 165 42 C 168 72, 170 100, 165 122 Z"/>
-          <path class="flame green" d="M225 122 C 220 100, 222 78, 225 50 C 228 78, 230 100, 225 122 Z"/>
-          <path class="flame green" d="M255 122 C 250 100, 252 72, 255 42 C 258 72, 260 100, 255 122 Z"/>
-          <path class="flame yellow" d="M315 122 C 310 100, 312 75, 315 45 C 318 75, 320 100, 315 122 Z"/>
-          <path class="flame yellow" d="M375 122 C 370 100, 372 72, 375 42 C 378 72, 380 100, 375 122 Z"/>
-        </g>
-      </svg>
-    </div>
-  </div>
-</div>
-      </div>
-<!-- FÍSICA -->
-<section class="physics" id="fisica">
-  <div class="container">
-    <p class="section-label">La física detrás</p>
-    <h2 class="section-title">Tres fenómenos.<br>Una experiencia.</h2>
-
-    <div class="physics-cards">
-
-      <div class="phys-card">
-        <span class="phys-number">01</span>
-        <span class="phys-icon">🔥</span>
-        <h3>Tubo de Rubens</h3>
-        <p>
-          Gas inflamable fluye por un tubo perforado. El sonido crea ondas
-          estacionarias que varían la presión de salida, modulando la altura
-          de las llamas. Cada frecuencia genera un patrón único y visible.
-        </p>
-      </div>
-
-      <div class="phys-card">
-        <span class="phys-number">02</span>
-        <span class="phys-icon">〰</span>
-        <h3>Theremin & ondas</h3>
-        <p>
-          El theremin detecta la posición de las manos mediante campos
-          electromagnéticos y genera frecuencias continuas. Es el único
-          instrumento musical sin contacto —pura física cuántica hecha arte.
-        </p>
-      </div>
-
-      <div class="phys-card">
-        <span class="phys-number">03</span>
-        <span class="phys-icon">🌈</span>
-        <h3>Transiciones electrónicas</h3>
-        <p>
-          Sales de litio, cobre, potasio, sodio y estroncio colocadas sobre el sistema
-          son excitadas por las llamas. Sus electrones saltan a niveles energéticos superiores
-          y al regresar emiten fotones de color exacto y único para cada elemento.
-          Química cuántica visible a simple vista.
-        </p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- EXPERIENCIA -->
-<section class="experience" id="experiencia">
-  <div class="container">
-    <p class="section-label">El flujo</p>
-    <h2 class="section-title">La experiencia<br>paso a paso</h2>
-
-    <div class="exp-timeline">
-
-      <div class="exp-step">
-        <div class="exp-dot">01</div>
-        <div class="exp-body">
-          <h3>El sonido entra al sistema</h3>
-          <p>Puede ser el theremin —tocado con las manos sin contacto físico— o cualquier señal
-          de audio: música, voz, un sintetizador, incluso el celular conectado al auxiliar.
-          El sistema funciona como un parlante de alta potencia que convierte cualquier frecuencia
-          en patrón de llama. La barrera de entrada es cero.</p>
-        </div>
-      </div>
-
-      <div class="exp-step">
-        <div class="exp-dot">02</div>
-        <div class="exp-body">
-          <h3>Las llamas despiertan</h3>
-          <p>El Tubo de Rubens conectado al theremin responde en tiempo real.
-          Notas bajas crean llamas altas y espaciadas; notas altas generan
-          múltiples llamas pequeñas y densas. La onda estacionaria se vuelve visible.</p>
-        </div>
-      </div>
-
-      <div class="exp-step">
-        <div class="exp-dot">03</div>
-        <div class="exp-body">
-          <h3>Las sales emiten sus colores</h3>
-          <p>Las llamas activan las sales de distintos elementos ubicadas sobre el tubo.
-          Litio emite rojo carmesí, sodio naranja intenso, cobre verde brillante, potasio violeta.
-          No es luz artificial: es la radiación exacta de transiciones electrónicas —
-          el espectro de emisión de cada átomo hecho visible por la música.</p>
-        </div>
-      </div>
-
-      <div class="exp-step">
-        <div class="exp-dot">04</div>
-        <div class="exp-body">
-          <h3>Comprensión visceral</h3>
-          <p>El visitante no solo escucha: ve, siente y experimenta la física.
-          La resonancia, la longitud de onda, la frecuencia —conceptos abstractos—
-          se vuelven tangibles, memorables e impactantes.</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- MERCADOS -->
-<section class="markets" id="mercados">
-  <div class="container">
-    <p class="section-label">Canales de comercialización</p>
-    <h2 class="section-title">Un producto.<br>Tres mundos.</h2>
-
-    <div class="markets-grid">
-
-      <div class="market-card museo">
-        <span class="market-tag">Museo Interactivo</span>
-        <h3>Ciencia<br>Viva</h3>
-        <p>Instalación permanente o temporal en museos de ciencia, tecnología y arte.
-        Conecta con audiencias escolares, familias y turistas mediante la física
-        experimental directa.</p>
-        <ul class="market-perks">
-          <li>Módulo educativo incluido con guía docente</li>
-          <li>Compatible con currículos de física (ondas, resonancia)</li>
-          <li>Alta durabilidad para uso continuo</li>
-          <li>Escalable: versión mini o instalación completa</li>
-        </ul>
-      </div>
-
-      <div class="market-card live">
-        <span class="market-tag">Show en Vivo</span>
-        <h3>Concierto<br>Visual</h3>
-        <p>Espectáculo escénico donde un músico interpreta en theremin en tiempo real
-        mientras el Tubo de Rubens y el sistema lumínico crean una experiencia
-        audiovisual única e irrepetible.</p>
-        <ul class="market-perks">
-          <li>Performance teatral con narrativa científica</li>
-          <li>Ideal para festivales de ciencia y arte</li>
-          <li>Rider técnico modular, montar en 4 horas</li>
-          <li>Capacidad para auditorios de 50–2000 personas</li>
-        </ul>
-      </div>
-
-      <div class="market-card rave">
-        <span class="market-tag">Rave / Club</span>
-        <h3>Physics<br>Rave</h3>
-        <p>Instalación psicodélica integrada en el floor de baile. Los DJs
-        conectan su señal al sistema: las llamas y el espectro de color
-        responden al kick, el bass y la melodía en tiempo real.</p>
-        <ul class="market-perks">
-          <li>Integración con controladores MIDI y modulares</li>
-          <li>Efecto visual sin pantallas ni proyectores</li>
-          <li>Elemento diferenciador y viral en redes</li>
-          <li>Certificado de seguridad ignífuga incluido</li>
-        </ul>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- TECH SPEC -->
-<section class="tech" id="tech">
-  <div class="container">
-    <p class="section-label">Especificaciones técnicas</p>
-    <h2 class="section-title">Construido para<br>impactar.</h2>
-
-    <div class="spec-grid">
-
-      <ul class="spec-list">
-        <li class="spec-item">
-          <span class="spec-key">Theremin</span>
-          <span class="spec-val">Moog Etherwave / Custom</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Tubo de Rubens</span>
-          <span class="spec-val fire">120 cm × 4 cm Ø · 40 orificios</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Gas</span>
-          <span class="spec-val">Propano / GLP regulado</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Rango de frecuencias</span>
-          <span class="spec-val">50 Hz — 4,000 Hz</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Sistema lumínico</span>
-          <span class="spec-val gold">LED RGBW + control DMX</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Mapeo cromático</span>
-          <span class="spec-val">Software propio en tiempo real</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Potencia eléctrica</span>
-          <span class="spec-val">220V / 15A máx.</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Área de instalación</span>
-          <span class="spec-val">Desde 4m²</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Certificación</span>
-          <span class="spec-val fire">Seguridad ignífuga · NTC / CE</span>
-        </li>
-      </ul>
-
-      <div class="differentiators">
-        <div class="diff-item">
-          <h4>Sin pantallas. Sin proyecciones.</h4>
-          <p>La experiencia ocurre en el mundo físico. Las llamas son reales, el gas es real,
-          la física es real. No hay intermediación digital en el espectáculo visual.</p>
-        </div>
-        <div class="diff-item">
-          <h4>Interactivo desde el primer segundo.</h4>
-          <p>Cualquier persona puede tocar el theremin sin entrenamiento previo.
-          La barrera de entrada es cero. El impacto es inmediato.</p>
-        </div>
-        <div class="diff-item">
-          <h4>Educativo + espectacular.</h4>
-          <p>Funciona como herramienta pedagógica en un museo y como instalación de arte
-          en un festival. El mismo sistema, dos lecturas.</p>
-        </div>
-        <div class="diff-item">
-          <h4>Altamente fotografiable y viral.</h4>
-          <p>Las llamas respondiendo a la música son un espectáculo irresistible para redes
-          sociales. Genera contenido orgánico para los espacios que lo adopten.</p>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- CTA -->
-<section class="cta-section" id="contacto">
-  <div class="cta-bg"></div>
-  <div class="container">
-    <p class="section-label">¿Listo para encender la física?</p>
-    <h2 class="section-title">Hagámoslo<br><span style="background: linear-gradient(135deg, #FF4B12, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">arder.</span></h2>
-    <p>
-      Estamos listos para presentar una demo en vivo, enviar specs técnicas
-      o co-diseñar la instalación a la medida de tu espacio.
-    </p>
-    <div class="cta-buttons">
-      <a href="/cdn-cgi/l/email-protection#4c2423202d0c3f2322252f2d622f23" class="btn-primary">Agendar reunión</a>
-      <a href="#" class="btn-secondary">Descargar dossier</a>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="logo">SÓ<span>NICA</span></div>
-  <p>© 2025 · Física. Sonido. Fuego.</p>
-  <p><a href="/cdn-cgi/l/email-protection" class="_cf_email_" data-cfemail="0961666568497a6667606a68276a66">[email&#160;protected]</a></p>
-</footer>
-
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // Generate flame particles in hero
-  const container = document.getElementById('particles');
-  const colors = ['#FF4B12','#FF8C00','#FFD700','#ff6030','#ffaa20'];
-
-  for (let i = 0; i < 60; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 1;
-    const hue = colors[Math.floor(Math.random() * colors.length)];
-    p.style.cssText = `
-      left: ${Math.random() * 100}%;
-      width: ${size}px;
-      height: ${size * (Math.random() * 8 + 4)}px;
-      background: ${hue};
-      animation-duration: ${Math.random() * 5 + 4}s;
-      animation-delay: ${Math.random() * 6}s;
-      opacity: 0;
-      box-shadow: 0 0 ${size * 3}px ${hue};
-    `;
-    container.appendChild(p);
-  }
-
-  // ── RUBENS TUBE CANVAS ANIMATION ──
-  const canvas = document.getElementById('rubensCanvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    const N = 60;
-    let W, H, baseY;
-    let phase = 0;
-    let freq = 2.5;
-
-    const flameHeights = new Array(N).fill(0);
-    const targetHeights = new Array(N).fill(0);
-    const noiseOffsets = Array.from({length: N}, () => Math.random() * 100);
-
-    function resize() {
-      W = canvas.offsetWidth;
-      H = canvas.offsetHeight;
-      canvas.width = W;
-      canvas.height = H;
-      baseY = H - 18;
-    }
-
-    function simplex(x, t) {
-      return Math.sin(x * 0.8 + t) * 0.5 + Math.sin(x * 1.7 + t * 1.3) * 0.3 + Math.sin(x * 0.4 + t * 0.7) * 0.2;
-    }
-
-    function drawFlame(x, height, flameW, alpha) {
-      if (height < 2) return;
-      const tipY = baseY - height;
-
-      // Outer flame — wide, orange→transparent
-      const gOuter = ctx.createLinearGradient(x, baseY, x, tipY);
-      gOuter.addColorStop(0,   rgba(220,50,5,${alpha}));
-      gOuter.addColorStop(0.25,rgba(255,100,10,${alpha * 0.9}));
-      gOuter.addColorStop(0.55,rgba(255,160,20,${alpha * 0.7}));
-      gOuter.addColorStop(0.82,rgba(60,180,220,${alpha * 0.45}));
-      gOuter.addColorStop(1,   rgba(30,140,255,0));
-
-      ctx.beginPath();
-      ctx.moveTo(x - flameW * 0.9, baseY);
-      ctx.bezierCurveTo(
-        x - flameW * 0.6, baseY - height * 0.4,
-        x - flameW * 0.15, tipY + height * 0.1,
-        x, tipY
-      );
-      ctx.bezierCurveTo(
-        x + flameW * 0.15, tipY + height * 0.1,
-        x + flameW * 0.6, baseY - height * 0.4,
-        x + flameW * 0.9, baseY
-      );
-      ctx.closePath();
-      ctx.fillStyle = gOuter;
-      ctx.fill();
-
-      // Inner bright core
-      const gInner = ctx.createLinearGradient(x, baseY, x, tipY);
-      gInner.addColorStop(0,   rgba(255,220,80,${alpha * 0.9}));
-      gInner.addColorStop(0.4, rgba(255,140,30,${alpha * 0.6}));
-      gInner.addColorStop(0.75,rgba(80,200,240,${alpha * 0.35}));
-      gInner.addColorStop(1,   rgba(40,160,255,0));
-
-      ctx.beginPath();
-      ctx.moveTo(x - flameW * 0.28, baseY);
-      ctx.bezierCurveTo(
-        x - flameW * 0.18, baseY - height * 0.45,
-        x - flameW * 0.04, tipY + height * 0.08,
-        x, tipY
-      );
-      ctx.bezierCurveTo(
-        x + flameW * 0.04, tipY + height * 0.08,
-        x + flameW * 0.18, baseY - height * 0.45,
-        x + flameW * 0.28, baseY
-      );
-      ctx.closePath();
-      ctx.fillStyle = gInner;
-      ctx.fill();
-    }
-
-    function frame() {
-      if (!canvas.offsetWidth) { requestAnimationFrame(frame); return; }
-      if (canvas.offsetWidth !== W) resize();
-
-      phase += 0.022;
-      freq = 2.5 + Math.sin(phase * 0.11) * 1.2;
-
-      ctx.clearRect(0, 0, W, H);
-
-      // Dark tube background glow
-      const bgGrad = ctx.createLinearGradient(0, H * 0.3, 0, H);
-      bgGrad.addColorStop(0, 'rgba(40,10,2,0)');
-      bgGrad.addColorStop(1, 'rgba(60,18,4,0.35)');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      const margin = 10;
-      const spacing = (W - margin * 2) / (N - 1);
-
-      for (let i = 0; i < N; i++) {
-        const t = i / (N - 1);
-        const waveVal = Math.abs(Math.sin(t * Math.PI * freq + phase * 0.4));
-        const noise = simplex(noiseOffsets[i], phase * 0.6) * 0.15;
-        targetHeights[i] = (waveVal + noise) * (H - 28) * 0.88;
-        flameHeights[i] += (targetHeights[i] - flameHeights[i]) * 0.18;
-      }
-
-      // Draw flames back to front (tallest last for overlap)
-      const order = Array.from({length: N}, (_, i) => i).sort((a, b) => flameHeights[a] - flameHeights[b]);
-      for (const i of order) {
-        const x = margin + i * spacing;
-        const h = Math.max(0, flameHeights[i]);
-        const flameW = spacing * 0.62;
-        drawFlame(x, h, flameW, 0.88);
-      }
-
-      // Tube base line
-      ctx.fillStyle = 'rgba(35,12,3,0.9)';
-      ctx.fillRect(0, baseY + 1, W, H - baseY - 1);
-
-      // Base dots (orifice indicators)
-      for (let i = 0; i < N; i++) {
-        const x = margin + i * spacing;
-        ctx.beginPath();
-        ctx.arc(x, baseY + 5, 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = flameHeights[i] > H * 0.08 ? 'rgba(100,160,220,0.8)' : 'rgba(80,40,20,0.6)';
-        ctx.fill();
-      }
-
-      requestAnimationFrame(frame);
-    }
-
-    resize();
-    window.addEventListener('resize', resize);
-    frame();
-  }
-
-
-  // Smooth reveal on scroll
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.style.opacity = '1';
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SÓNICA — Donde el sonido se vuelve visible</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
 <style>
-  :root {
-    --fire: #FF4B12;
-    --ember: #FF8C00;
-    --plasma: #FFD700;
-    --ether: #00BFFF;
-    --void: #050508;
-    --smoke: #1a1a24;
-    --mist: #2d2d3e;
-    --ash: #6b6b85;
-    --ghost: #b0b0c8;
-    --white: #f0f0f8;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--void);
-    color: var(--white);
-    font-family: 'Space Grotesk', sans-serif;
-    overflow-x: hidden;
-  }
-
-  /* ── NOISE OVERLAY ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    z-index: 1000;
-    opacity: 0.35;
-  }
-
-  /* ── HERO ── */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    padding: 4rem 2rem;
-    overflow: hidden;
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(ellipse 80% 60% at 50% 110%, rgba(255,75,18,0.18) 0%, transparent 70%),
-      radial-gradient(ellipse 60% 40% at 20% 50%, rgba(0,191,255,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 30% at 80% 30%, rgba(255,215,0,0.05) 0%, transparent 50%),
-      var(--void);
-    z-index: 0;
-  }
-
-  /* Animated flame particles */
-  .particles {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .particle {
-    position: absolute;
-    bottom: -20px;
-    width: 3px;
-    border-radius: 50%;
-    animation: rise linear infinite;
-    opacity: 0;
-  }
-
-  @keyframes rise {
-    0%   { transform: translateY(0) scaleX(1); opacity: 0; }
-    10%  { opacity: 0.8; }
-    50%  { transform: translateY(-40vh) scaleX(1.5) translateX(20px); opacity: 0.4; }
-    100% { transform: translateY(-100vh) scaleX(0.3) translateX(-10px); opacity: 0; }
-  }
-
-  .hero-content { position: relative; z-index: 2; max-width: 900px; }
-
-  .eyebrow {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 300;
-    letter-spacing: 0.3em;
-    color: var(--fire);
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeUp 0.8s ease 0.3s forwards;
-  }
-
-  .hero-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(6rem, 18vw, 14rem);
-    line-height: 0.88;
-    letter-spacing: -0.02em;
-    color: var(--white);
-    margin-bottom: 0.5rem;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 0.5s forwards;
-  }
-
-  .hero-title span {
-    display: block;
-    background: linear-gradient(135deg, var(--fire) 0%, var(--ember) 40%, var(--plasma) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .hero-sub {
-    font-size: clamp(1rem, 2.5vw, 1.4rem);
-    font-weight: 300;
-    color: var(--ghost);
-    line-height: 1.6;
-    max-width: 600px;
-    margin: 2rem auto 3rem;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 0.8s forwards;
-  }
-
-  .hero-badges {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 1s forwards;
-  }
-
-  .badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.5rem 1.2rem;
-    border: 1px solid;
-    border-radius: 100px;
-  }
-
-  .badge-fire { border-color: var(--fire); color: var(--fire); }
-  .badge-ether { border-color: var(--ether); color: var(--ether); }
-  .badge-gold { border-color: var(--plasma); color: var(--plasma); }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 2rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    opacity: 0;
-    animation: fadeUp 0.9s ease 1.5s forwards;
-  }
-
-  .scroll-line {
-    width: 1px;
-    height: 50px;
-    background: linear-gradient(to bottom, var(--fire), transparent);
-    animation: pulse 2s ease-in-out infinite;
-  }
-
-  .scroll-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    color: var(--ash);
-    text-transform: uppercase;
-  }
-
-  @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── SECTION BASE ── */
-  section { padding: 7rem 2rem; position: relative; }
-  .container { max-width: 1100px; margin: 0 auto; }
-
-  .section-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--fire);
-    margin-bottom: 1.5rem;
-  }
-
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(3rem, 7vw, 5.5rem);
-    line-height: 0.95;
-    letter-spacing: 0.01em;
-    margin-bottom: 2rem;
-  }
-
-  /* ── CONCEPT SECTION ── */
-  .concept { background: var(--smoke); }
-
-  .concept-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
-  }
-
-  .concept-text p {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: var(--ghost);
-    margin-bottom: 1.5rem;
-  }
-
-  .concept-text strong { color: var(--white); font-weight: 500; }
-
-  .concept-visual {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* Ruben's tube SVG illustration */
-  .tube-wrap { width: 100%; max-width: 440px; }
-
-  /* ── PHYSICS SECTION ── */
-  .physics { background: var(--void); }
-
-  .physics-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-top: 4rem;
-  }
-
-  .phys-card {
-    background: var(--smoke);
-    border: 1px solid rgba(255,75,18,0.15);
-    border-radius: 4px;
-    padding: 2.5rem 2rem;
-    position: relative;
-    overflow: hidden;
-    transition: border-color 0.3s;
-  }
-
-  .phys-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--fire), var(--plasma));
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .phys-card:hover { border-color: rgba(255,75,18,0.4); }
-  .phys-card:hover::before { opacity: 1; }
-
-  .phys-number {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 5rem;
-    line-height: 1;
-    color: rgba(255,75,18,0.12);
-    position: absolute;
-    top: 1rem; right: 1.5rem;
-  }
-
-  .phys-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    display: block;
-  }
-
-  .phys-card h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    color: var(--white);
-  }
-
-  .phys-card p {
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--ash);
-  }
-
-  /* ── EXPERIENCE SECTION ── */
-  .experience { background: var(--smoke); overflow: hidden; }
-
-  .exp-timeline {
-    position: relative;
-    margin-top: 4rem;
-  }
-
-  .exp-timeline::before {
-    content: '';
-    position: absolute;
-    left: 28px;
-    top: 0; bottom: 0;
-    width: 1px;
-    background: linear-gradient(to bottom, var(--fire), transparent);
-  }
-
-  .exp-step {
-    display: flex;
-    gap: 3rem;
-    margin-bottom: 4rem;
-    align-items: flex-start;
-  }
-
-  .exp-dot {
-    width: 57px;
-    height: 57px;
-    border-radius: 50%;
-    background: var(--void);
-    border: 1px solid var(--fire);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    color: var(--fire);
-    position: relative;
-    z-index: 1;
-  }
-
-  .exp-body h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0.04em;
-    margin-bottom: 0.75rem;
-  }
-
-  .exp-body p {
-    font-size: 0.95rem;
-    line-height: 1.8;
-    color: var(--ash);
-    max-width: 600px;
-  }
-
-  /* ── MARKETS ── */
-  .markets { background: var(--void); }
-
-  .markets-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
-    margin-top: 4rem;
-  }
-
-  .market-card {
-    border: 1px solid var(--mist);
-    border-radius: 2px;
-    padding: 3rem 2rem 2.5rem;
-    position: relative;
-    background: transparent;
-    overflow: hidden;
-    transition: all 0.3s;
-    cursor: default;
-  }
-
-  .market-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-
-  .market-card.museo::after { background: radial-gradient(circle at 50% 100%, rgba(0,191,255,0.06), transparent 70%); }
-  .market-card.live::after  { background: radial-gradient(circle at 50% 100%, rgba(255,75,18,0.06), transparent 70%); }
-  .market-card.rave::after  { background: radial-gradient(circle at 50% 100%, rgba(255,215,0,0.06), transparent 70%); }
-
-  .market-card:hover { border-color: var(--ash); transform: translateY(-4px); }
-  .market-card:hover::after { opacity: 1; }
-
-  .market-tag {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.62rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    margin-bottom: 2rem;
-    display: block;
-  }
-
-  .museo .market-tag { color: var(--ether); }
-  .live  .market-tag { color: var(--fire); }
-  .rave  .market-tag { color: var(--plasma); }
-
-  .market-card h3 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
-    line-height: 1;
-    margin-bottom: 1rem;
-    letter-spacing: 0.03em;
-  }
-
-  .market-card p {
-    font-size: 0.9rem;
-    line-height: 1.7;
-    color: var(--ash);
-    margin-bottom: 1.5rem;
-  }
-
-  .market-perks {
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .market-perks li {
-    font-size: 0.82rem;
-    color: var(--ghost);
-    padding-left: 1.2rem;
-    position: relative;
-  }
-
-  .market-perks li::before {
-    content: '—';
-    position: absolute;
-    left: 0;
-    color: var(--ash);
-  }
-
-  /* ── TECH SPEC ── */
-  .tech { background: var(--smoke); }
-
-  .spec-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 5rem;
-    margin-top: 4rem;
-    align-items: start;
-  }
-
-  .spec-list { list-style: none; }
-
-  .spec-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.25rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-  }
-
-  .spec-item:last-child { border-bottom: none; }
-
-  .spec-key {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-    color: var(--ash);
-    text-transform: uppercase;
-  }
-
-  .spec-val {
-    font-size: 0.95rem;
-    color: var(--white);
-    font-weight: 500;
-    text-align: right;
-  }
-
-  .spec-val.fire { color: var(--fire); }
-  .spec-val.gold { color: var(--plasma); }
-
-  .differentiators { }
-
-  .diff-item {
-    padding: 2rem;
-    background: var(--void);
-    border-left: 2px solid var(--fire);
-    margin-bottom: 1rem;
-  }
-
-  .diff-item h4 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.4rem;
-    color: var(--white);
-  }
-
-  .diff-item p {
-    font-size: 0.85rem;
-    line-height: 1.6;
-    color: var(--ash);
-  }
-
-  /* ── CTA ── */
-  .cta-section {
-    background: var(--void);
-    text-align: center;
-    padding: 10rem 2rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .cta-bg {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 80% 50% at 50% 80%, rgba(255,75,18,0.12), transparent 70%);
-    pointer-events: none;
-  }
-
-  .cta-section .section-title {
-    font-size: clamp(3.5rem, 9vw, 7rem);
-    position: relative;
-    z-index: 1;
-  }
-
-  .cta-section p {
-    font-size: 1.1rem;
-    color: var(--ghost);
-    max-width: 500px;
-    margin: 1.5rem auto 3rem;
-    line-height: 1.7;
-    position: relative;
-    z-index: 1;
-  }
-
-  .cta-buttons {
-    display: flex;
-    gap: 1.2rem;
-    justify-content: center;
-    flex-wrap: wrap;
-    position: relative;
-    z-index: 1;
-  }
-
-  .btn-primary {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 1.1rem 2.8rem;
-    background: linear-gradient(135deg, var(--fire), var(--ember));
-    color: #fff;
-    border: none;
-    border-radius: 2px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: opacity 0.2s, transform 0.2s;
-  }
-
-  .btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
-
-  .btn-secondary {
-    font-family: 'Space Grotesk', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 500;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 1.1rem 2.8rem;
-    background: transparent;
-    color: var(--ghost);
-    border: 1px solid var(--mist);
-    border-radius: 2px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: border-color 0.2s, color 0.2s;
-  }
-
-  .btn-secondary:hover { border-color: var(--ash); color: var(--white); }
-
-  /* ── NAV ── */
-  nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(to bottom, rgba(5,5,8,0.95), transparent);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-  }
-
-  .nav-logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.8rem;
-    letter-spacing: 0.1em;
-    color: var(--white);
-    text-decoration: none;
-  }
-
-  .nav-logo span { color: var(--fire); }
-
-  .nav-links {
-    display: flex;
-    gap: 2.5rem;
-    list-style: none;
-  }
-
-  .nav-links a {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--ash);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-
-  .nav-links a:hover { color: var(--white); }
-
-  /* ── QUOTE BAND ── */
-  .quote-band {
-    background: linear-gradient(135deg, rgba(255,75,18,0.08), rgba(255,215,0,0.05));
-    border-top: 1px solid rgba(255,75,18,0.2);
-    border-bottom: 1px solid rgba(255,75,18,0.2);
-    padding: 5rem 2rem;
-    text-align: center;
-  }
-
-  .big-quote {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2rem, 5vw, 3.8rem);
-    letter-spacing: 0.05em;
-    line-height: 1.2;
-    color: var(--white);
-    max-width: 800px;
-    margin: 0 auto;
-  }
-
-  .big-quote em {
-    font-style: normal;
-    background: linear-gradient(90deg, var(--fire), var(--plasma));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 768px) {
-    .concept-grid { grid-template-columns: 1fr; gap: 3rem; }
-    .physics-cards { grid-template-columns: 1fr; }
-    .markets-grid { grid-template-columns: 1fr; }
-    .spec-grid { grid-template-columns: 1fr; gap: 3rem; }
-    .nav-links { display: none; }
-    .concept-visual { height: 360px; }
-  }
-
-  /* ── WAVE ANIMATION ── */
-  .wave-canvas {
-    width: 100%;
-    height: 120px;
-    display: block;
-    margin: 3rem 0 0;
-  }
-
-  /* ── FOOTER ── */
-  footer {
-    background: var(--void);
-    padding: 3rem 2rem;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  footer .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.4rem;
-    color: var(--ash);
-  }
-
-  footer .logo span { color: var(--fire); }
-
-  footer p {
-    font-family: 'DM Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    color: var(--ash);
-    text-transform: uppercase;
-  }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --fire-1: #ff2200; --fire-2: #ff6600; --fire-3: #ffaa00; --fire-4: #ffdd44;
+  --cyan: #00eeff; --violet: #8800ff;
+  --bg: #080608; --bg-2: #0e0a0e; --text: #f5f0e8;
+  --text-dim: #7a6e60; --border: rgba(255,100,0,0.15);
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; overflow-x: hidden; cursor: none; }
+
+#cursor { position: fixed; z-index: 9999; pointer-events: none; width: 12px; height: 12px; border-radius: 50%; background: var(--fire-3); transform: translate(-50%,-50%); mix-blend-mode: screen; transition: width .2s, height .2s; }
+#cursor-ring { position: fixed; z-index: 9998; pointer-events: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,170,0,0.5); transform: translate(-50%,-50%); transition: width .25s, height .25s; }
+
+/* ── AUDIO PLAYER ── */
+#audio-player {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 500;
+  display: flex; align-items: center; gap: 1rem;
+  background: rgba(8,6,8,0.93); border: 1px solid var(--border);
+  backdrop-filter: blur(14px); padding: .9rem 1.4rem; border-radius: 3px;
+  transition: border-color .4s, box-shadow .4s;
+}
+#audio-player.playing { border-color: rgba(255,150,0,.5); box-shadow: 0 0 30px rgba(255,100,0,.12); }
+#play-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  border: 1px solid var(--fire-3); background: rgba(255,150,0,.1);
+  cursor: none; display: flex; align-items: center; justify-content: center;
+  transition: background .3s, transform .2s; flex-shrink: 0;
+}
+#play-btn:hover { background: rgba(255,150,0,.25); transform: scale(1.08); }
+#play-btn svg { width: 14px; height: 14px; fill: var(--fire-3); }
+.player-info { display: flex; flex-direction: column; gap: .25rem; }
+.player-title { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .15em; color: var(--text); }
+#player-state { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .1em; color: var(--text-dim); min-width: 140px; }
+#viz-mini { width: 64px; height: 30px; }
+#vol-wrap { display: flex; align-items: center; gap: .5rem; }
+#vol-slider { -webkit-appearance: none; width: 60px; height: 2px; background: var(--border); outline: none; cursor: none; }
+#vol-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--fire-3); cursor: none; }
+
+/* ── NAV ── */
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 3rem; background: linear-gradient(to bottom, rgba(8,6,8,.95) 0%, transparent); backdrop-filter: blur(8px); }
+.nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: .15em; background: linear-gradient(90deg, var(--fire-3), var(--fire-1)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-decoration: none; }
+.nav-links { display: flex; gap: 2.5rem; list-style: none; }
+.nav-links a { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); text-decoration: none; transition: color .3s; position: relative; }
+.nav-links a::after { content: ''; position: absolute; left: 0; bottom: -4px; width: 0; height: 1px; background: var(--fire-3); transition: width .3s; }
+.nav-links a:hover { color: var(--fire-3); }
+.nav-links a:hover::after { width: 100%; }
+
+/* ── HERO ── */
+#hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; text-align: center; padding: 0 2rem; }
+#flame-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .65; }
+#hero::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 80% 80% at 50% 60%, transparent 0%, var(--bg) 70%); pointer-events: none; z-index: 1; }
+.hero-content { position: relative; z-index: 2; }
+.hero-tag { font-family: 'Space Mono', monospace; font-size: .7rem; letter-spacing: .3em; text-transform: uppercase; color: var(--fire-3); margin-bottom: 1.5rem; opacity: 0; animation: fadeUp .8s .3s forwards; }
+.hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5rem,18vw,16rem); line-height: .88; letter-spacing: -.02em; background: linear-gradient(175deg,#fff5e0 0%,var(--fire-4) 30%,var(--fire-2) 65%,var(--fire-1) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 60px rgba(255,100,0,.4)); opacity: 0; animation: fadeUp .9s .5s forwards; }
+.hero-sub { font-size: clamp(.95rem,2vw,1.15rem); font-weight: 300; color: rgba(245,240,232,.6); max-width: 500px; margin: 2rem auto 0; line-height: 1.7; opacity: 0; animation: fadeUp .9s .8s forwards; }
+.hero-tags { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2.5rem; opacity: 0; animation: fadeUp .9s 1s forwards; }
+.htag { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; padding: .5rem 1rem; border: 1px solid var(--border); color: var(--fire-3); background: rgba(255,100,0,.06); border-radius: 2px; transition: background .3s, border-color .3s; }
+.htag:hover { background: rgba(255,100,0,.15); border-color: var(--fire-3); }
+.hero-cta { margin-top: 3.5rem; opacity: 0; animation: fadeUp .9s 1.2s forwards; }
+.btn-fire { display: inline-flex; align-items: center; gap: .8rem; font-family: 'Space Mono', monospace; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; padding: 1rem 2.5rem; text-decoration: none; color: var(--bg); background: linear-gradient(90deg, var(--fire-3), var(--fire-2)); border-radius: 2px; position: relative; overflow: hidden; transition: box-shadow .3s, transform .2s; }
+.btn-fire::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, var(--fire-4), var(--fire-3)); opacity: 0; transition: opacity .3s; }
+.btn-fire:hover { box-shadow: 0 0 40px rgba(255,150,0,.5); transform: translateY(-2px); }
+.btn-fire:hover::before { opacity: 1; }
+.btn-fire span { position: relative; z-index: 1; }
+.scroll-hint { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: .6rem; opacity: 0; animation: fadeIn 1s 1.8s forwards; }
+.scroll-hint span { font-family: 'Space Mono', monospace; font-size: .55rem; letter-spacing: .25em; text-transform: uppercase; color: var(--text-dim); }
+.scroll-line { width: 1px; height: 50px; background: linear-gradient(to bottom, var(--fire-3), transparent); animation: scrollPulse 2s infinite; }
+
+/* ── SECTIONS ── */
+.quote-section { padding: 6rem 2rem; display: flex; justify-content: center; background: linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 50%,var(--bg) 100%); position: relative; overflow: hidden; }
+.quote-section::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(255,80,0,.06) 0%, transparent 70%); }
+blockquote { max-width: 700px; text-align: center; position: relative; z-index: 1; }
+blockquote p { font-family: 'DM Sans', sans-serif; font-size: clamp(1.4rem,3vw,2rem); font-weight: 300; font-style: italic; line-height: 1.5; color: rgba(245,240,232,.85); }
+blockquote em { font-style: normal; color: var(--fire-3); }
+blockquote footer { margin-top: 1.5rem; font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .2em; color: var(--text-dim); }
+
+section { padding: 7rem 3rem; }
+.section-label { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .3em; text-transform: uppercase; color: var(--fire-3); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem,6vw,5rem); line-height: 1; letter-spacing: .02em; color: var(--text); }
+
+#concepto { max-width: 1200px; margin: 0 auto; }
+.concepto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; margin-top: 4rem; }
+.concepto-text p { font-size: 1rem; line-height: 1.8; color: rgba(245,240,232,.7); margin-bottom: 1.5rem; }
+.concepto-text strong { color: var(--fire-3); font-weight: 500; }
+.concepto-visual { position: relative; aspect-ratio: 4/5; border: 1px solid var(--border); overflow: hidden; border-radius: 2px; }
+#rubens-canvas { width: 100%; height: 100%; display: block; }
+.canvas-label { position: absolute; bottom: 1rem; left: 1rem; font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .2em; color: var(--fire-3); background: rgba(8,6,8,.85); padding: .4rem .8rem; border: 1px solid var(--border); }
+#audio-indicator { position: absolute; top: 1rem; right: 1rem; width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); transition: background .3s; }
+#audio-indicator.active { background: var(--fire-3); box-shadow: 0 0 8px var(--fire-3); animation: blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+#fisica { background: var(--bg-2); }
+.fisica-inner { max-width: 1200px; margin: 0 auto; }
+.fenomenos { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; margin-top: 4rem; }
+.fenomeno { padding: 2.5rem; background: rgba(245,240,232,.02); border: 1px solid var(--border); position: relative; overflow: hidden; transition: background .4s, border-color .4s; }
+.fenomeno::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg,rgba(255,100,0,.08) 0%,transparent 60%); opacity: 0; transition: opacity .4s; }
+.fenomeno:hover { background: rgba(255,100,0,.05); border-color: rgba(255,100,0,.3); }
+.fenomeno:hover::before { opacity: 1; }
+.fenomeno-num { font-family: 'Bebas Neue', sans-serif; font-size: 4rem; color: rgba(255,100,0,.15); line-height: 1; margin-bottom: 1rem; }
+.fenomeno-icon { font-size: 2rem; margin-bottom: 1rem; }
+.fenomeno h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: .05em; color: var(--fire-3); margin-bottom: 1rem; }
+.fenomeno p { font-size: .9rem; line-height: 1.7; color: rgba(245,240,232,.6); }
+
+#experiencia { max-width: 1200px; margin: 0 auto; }
+.steps { margin-top: 4rem; }
+.step { display: grid; grid-template-columns: 80px 1fr; border-top: 1px solid var(--border); padding: 2.5rem 0; opacity: .4; transition: opacity .5s; }
+.step.active, .step:hover { opacity: 1; }
+.step-num { font-family: 'Bebas Neue', sans-serif; font-size: 3.5rem; color: var(--fire-3); line-height: 1; padding-top: .2rem; }
+.step-content h3 { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: .04em; color: var(--text); margin-bottom: .8rem; }
+.step-content p { font-size: .95rem; line-height: 1.7; color: rgba(245,240,232,.6); }
+
+#mercados { background: var(--bg-2); }
+.mercados-inner { max-width: 1200px; margin: 0 auto; }
+.mercados-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; margin-top: 4rem; }
+.mercado { padding: 3rem 2.5rem; border: 1px solid var(--border); position: relative; overflow: hidden; transition: border-color .4s; }
+.mercado-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.mercado:nth-child(1) .mercado-accent { background: linear-gradient(90deg, var(--fire-1), var(--fire-3)); }
+.mercado:nth-child(2) .mercado-accent { background: linear-gradient(90deg, var(--fire-3), var(--fire-4)); }
+.mercado:nth-child(3) .mercado-accent { background: linear-gradient(90deg, var(--violet), var(--cyan)); }
+.mercado-tag { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .25em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 1rem; }
+.mercado h3 { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; letter-spacing: .04em; color: var(--text); margin-bottom: 1rem; }
+.mercado p { font-size: .88rem; line-height: 1.7; color: rgba(245,240,232,.6); margin-bottom: 1.5rem; }
+.mercado ul { list-style: none; display: flex; flex-direction: column; gap: .5rem; }
+.mercado ul li { font-family: 'Space Mono', monospace; font-size: .65rem; color: rgba(245,240,232,.5); padding-left: 1.2rem; position: relative; }
+.mercado ul li::before { content: '→'; position: absolute; left: 0; color: var(--fire-3); }
+.mercado:hover { border-color: rgba(255,100,0,.3); }
+
+#specs { max-width: 1200px; margin: 0 auto; }
+.specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; margin-top: 4rem; align-items: start; }
+.spec-table { border-collapse: collapse; width: 100%; }
+.spec-table tr { border-bottom: 1px solid var(--border); }
+.spec-table td { padding: .9rem 0; font-size: .85rem; }
+.spec-table td:first-child { font-family: 'Space Mono', monospace; font-size: .65rem; letter-spacing: .1em; color: var(--text-dim); width: 45%; }
+.specs-props { display: flex; flex-direction: column; gap: 2rem; }
+.spec-prop { padding: 1.5rem; border: 1px solid var(--border); border-left: 3px solid var(--fire-3); background: rgba(255,100,0,.03); }
+.spec-prop h4 { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: .05em; color: var(--fire-3); margin-bottom: .5rem; }
+.spec-prop p { font-size: .85rem; line-height: 1.6; color: rgba(245,240,232,.6); }
+
+#contacto { background: linear-gradient(180deg,var(--bg-2) 0%,#0a0005 100%); text-align: center; position: relative; overflow: hidden; }
+#contacto::before { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 70% 70% at 50% 100%, rgba(255,60,0,.12) 0%, transparent 70%); }
+.contacto-inner { max-width: 700px; margin: 0 auto; position: relative; z-index: 1; }
+.contacto-inner h2 { margin-bottom: 1.5rem; }
+.contacto-inner p { font-size: 1rem; line-height: 1.7; color: rgba(245,240,232,.6); margin-bottom: 3rem; }
+.cta-group { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+.btn-outline { display: inline-flex; align-items: center; gap: .8rem; font-family: 'Space Mono', monospace; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; padding: 1rem 2.5rem; text-decoration: none; color: var(--fire-3); border: 1px solid var(--fire-3); border-radius: 2px; background: transparent; transition: background .3s; }
+.btn-outline:hover { background: rgba(255,100,0,.1); }
+
+footer { padding: 2rem 3rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: var(--bg); }
+footer .logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: .15em; color: var(--fire-3); }
+footer p { font-family: 'Space Mono', monospace; font-size: .6rem; letter-spacing: .15em; color: var(--text-dim); }
+footer a { font-family: 'Space Mono', monospace; font-size: .6rem; color: var(--text-dim); text-decoration: none; transition: color .3s; }
+footer a:hover { color: var(--fire-3); }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+@keyframes scrollPulse { 0%,100%{opacity:.3;transform:scaleY(.8)} 50%{opacity:1;transform:scaleY(1)} }
+.reveal { opacity: 0; transform: translateY(40px); transition: opacity .8s ease, transform .8s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: .1s; }
+.reveal-delay-2 { transition-delay: .2s; }
+.reveal-delay-3 { transition-delay: .35s; }
+#freq-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 3px; z-index: 200; pointer-events: none; background: linear-gradient(90deg,var(--fire-1),var(--fire-3),var(--fire-4)); transform-origin: left; transform: scaleX(0); transition: transform .1s ease; }
+
+@media (max-width: 900px) {
+  nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; }
+  section { padding: 5rem 1.5rem; }
+  .concepto-grid, .specs-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .fenomenos, .mercados-grid { grid-template-columns: 1fr; }
+  footer { flex-direction: column; gap: 1rem; text-align: center; }
+  #audio-player { bottom: 1rem; right: 1rem; }
+}
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<div id="freq-bar"></div>
+
+<!-- PLAYER -->
+<div id="audio-player">
+  <button id="play-btn" title="Play / Pause">
+    <svg id="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <svg id="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+  </button>
+  <div class="player-info">
+    <span class="player-title">SÓNICA — Theremin Ambient</span>
+    <span id="player-state">Presiona ▶ para activar</span>
+  </div>
+  <canvas id="viz-mini"></canvas>
+  <div id="vol-wrap">
+    <span style="font-size:.75rem;color:var(--text-dim)">🔊</span>
+    <input type="range" id="vol-slider" min="-40" max="0" value="-10" step="1">
+  </div>
+</div>
+
 <nav>
-  <a href="#" class="nav-logo">SÓ<span>NICA</span></a>
+  <a href="#" class="nav-logo">SÓNICA</a>
   <ul class="nav-links">
     <li><a href="#concepto">Concepto</a></li>
     <li><a href="#fisica">Física</a></li>
@@ -1972,542 +216,480 @@
   </ul>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-
-  <!-- Particles -->
-  <div class="particles" id="particles"></div>
-
+<section id="hero">
+  <canvas id="flame-canvas"></canvas>
   <div class="hero-content">
-    <p class="eyebrow">Una propuesta para museos · shows en vivo · raves</p>
-    <h1 class="hero-title">
-      SÓ<span>NICA</span>
-    </h1>
-    <p class="hero-sub">
-      Una experiencia multisensorial donde la física del sonido se convierte en fuego,<br>
-      luz y vibración. Escucha con los ojos.
-    </p>
-    <div class="hero-badges">
-      <span class="badge badge-fire">Theremin</span>
-      <span class="badge badge-fire">Tubo de Rubens</span>
-      <span class="badge badge-ether">Radiación de Color</span>
-      <span class="badge badge-gold">Física del Sonido</span>
+    <p class="hero-tag">Theremin · Tubo de Rubens · Emisión espectral</p>
+    <h1 class="hero-title">SÓNICA</h1>
+    <p class="hero-sub">Una experiencia multisensorial donde la física del sonido se convierte en fuego, luz y vibración. Escucha con los ojos.</p>
+    <div class="hero-tags">
+      <span class="htag">Theremin</span>
+      <span class="htag">Tubo de Rubens</span>
+      <span class="htag">Radiación de Color</span>
+      <span class="htag">Física del Sonido</span>
+    </div>
+    <div class="hero-cta">
+      <a href="#concepto" class="btn-fire"><span>Descubrir</span><span>↓</span></a>
     </div>
   </div>
-
-  <div class="scroll-hint">
-    <span class="scroll-label">Descubre</span>
-    <div class="scroll-line"></div>
-  </div>
+  <div class="scroll-hint"><span>Scroll</span><div class="scroll-line"></div></div>
 </section>
 
-<!-- QUOTE BAND -->
-<div class="quote-band">
-  <p class="big-quote">
-    "No solo escuchas la música.<br>
-    <em>La ves arder.</em>"
-  </p>
+<div class="quote-section">
+  <blockquote>
+    <p>"No solo escuchas la música.<br><em>La ves arder.</em>"</p>
+    <footer>— El concepto detrás de SÓNICA</footer>
+  </blockquote>
 </div>
 
-<!-- CONCEPTO -->
-<section class="concept" id="concepto">
-  <div class="container">
-    <div class="concept-grid">
-      <div class="concept-text">
-        <p class="section-label">El concepto</p>
-        <h2 class="section-title">Donde la física<br>toca el arte</h2>
-        <p>
-          <strong>SÓNICA</strong> es una instalación musical interactiva que hace visible lo invisible:
-          las ondas de sonido. En su centro, un <strong>theremin</strong> —el único instrumento del mundo
-          que se toca sin contacto físico— genera frecuencias que controlan todo en tiempo real.
-        </p>
-        <p>
-          Esas frecuencias viajan a través de un <strong>Tubo de Rubens</strong> modificado:
-          una cámara de gas con llamas que dibujan la forma exacta de cada nota, mostrando
-          nodos y antinodos de las ondas estacionarias. La música literalmente se convierte en fuego.
-        </p>
-        <p>
-          Simultáneamente, el sistema traduce las frecuencias sonoras en una respuesta térmica sobre
-          <strong>sales metálicas</strong>. Esto genera una <strong>emisión espectral de color real</strong>,
-          producida por las transiciones electrónicas de los elementos químicos sobre el sistema.
-        </p>
-        <p>
-          Y el sistema no se limita al theremin: funciona como un <strong>parlante de alta potencia</strong>,
-          capaz de recibir cualquier señal de audio —música, voz, sintetizadores, señales de DJ—
-          y convertirla en patrones de llama en tiempo real. Una interfaz de sonido universal
-          para cualquier contexto musical.
-        </p>
-      </div>
-      
-<div class="rubens-main-container">
-  
-  <div class="rubens-text-column">
-    <h2>Tubo de Rubens</h2>
-    <p>El theremin genera frecuencias que controlan todo en tiempo real. Estas frecuencias viajan a través de un tubo modificado: una cámara de gas con llamas que dibujan la forma exacta de cada nota.</p>
-    <p>La música literalmente se ve a través del fuego.</p>
-  </div>
-
-  <div class="rubens-visual-column">
-    
-    <div class="controls-area">
-      <button id="playButton">▶ ACTIVAR EXPERIMENTO</button>
-      <audio id="audioElement" crossorigin="anonymous" src="https://assets.codepen.io/15047/Goat+-+Vessel.mp3"></audio>
+<section id="concepto">
+  <div class="section-label reveal">El concepto</div>
+  <h2 class="reveal reveal-delay-1">Donde la física<br>toca el arte</h2>
+  <div class="concepto-grid">
+    <div class="concepto-text reveal reveal-delay-2">
+      <p><strong>SÓNICA</strong> es una instalación musical interactiva que hace visible lo invisible: las ondas de sonido. En su centro, un <strong>theremin</strong> —el único instrumento del mundo que se toca sin contacto físico— genera frecuencias que controlan todo en tiempo real.</p>
+      <p>Esas frecuencias viajan a través de un <strong>Tubo de Rubens</strong> modificado: una cámara de gas con llamas que dibujan la forma exacta de cada nota, mostrando nodos y antinodos de las ondas estacionarias. La música literalmente se convierte en fuego.</p>
+      <p>Simultáneamente, el sistema traduce las frecuencias sonoras en una respuesta térmica sobre <strong>sales metálicas</strong>, generando una emisión espectral de color real producida por las transiciones electrónicas de los elementos químicos.</p>
+      <p>El sistema funciona como un <strong>parlante de alta potencia</strong>, capaz de recibir cualquier señal de audio —música, voz, sintetizadores, señales de DJ— y convertirla en patrones de llama en tiempo real.</p>
     </div>
-
-    <div class="graphics-area">
-      <div class="devices">
-        <svg class="icon-svg" viewBox="0 0 120 120">
-          <rect x="10" y="60" width="100" height="40" rx="8" fill="#181818" stroke="#777" stroke-width="2"/>
-          <rect x="58" y="5" width="4" height="40" fill="#ccc"/>
-        </svg>
-        <svg class="icon-svg" viewBox="0 0 120 120">
-          <rect x="20" y="20" width="80" height="80" rx="10" fill="#181818" stroke="#777" stroke-width="2"/>
-          <circle cx="60" cy="60" r="28" fill="#2b2b2b" stroke="#666" stroke-width="2"/>
-        </svg>
-      </div>
-
-      <svg class="rubens-svg" viewBox="0 0 400 160">
-        <defs>
-          <filter id="flame-blur"><feGaussianBlur stdDeviation="1.5" /></filter>
-          <linearGradient id="grad-purple" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#b000ff"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-          <linearGradient id="grad-blue" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#00bbff"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-          <linearGradient id="grad-green" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#00ff88"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-          <linearGradient id="grad-yellow" x1="0" y1="1" x2="0" y2="0"><stop offset="0%" stop-color="#fff"/><stop offset="30%" stop-color="#ffb400"/><stop offset="100%" stop-opacity="0"/></linearGradient>
-        </defs>
-        <rect x="20" y="110" width="360" height="25" rx="10" fill="#222" stroke="#777" stroke-width="2"/>
-        <g class="flames">
-          <path class="flame purple" d="M45 122 C 40 100, 42 70, 45 40 C 48 70, 50 100, 45 122 Z"/>
-          <path class="flame purple" d="M75 122 C 70 100, 72 75, 75 45 C 78 75, 80 100, 75 122 Z"/>
-          <path class="flame blue" d="M135 122 C 130 100, 132 75, 135 45 C 138 75, 140 100, 135 122 Z"/>
-          <path class="flame blue" d="M165 122 C 160 100, 162 72, 165 42 C 168 72, 170 100, 165 122 Z"/>
-          <path class="flame green" d="M225 122 C 220 100, 222 78, 225 50 C 228 78, 230 100, 225 122 Z"/>
-          <path class="flame green" d="M255 122 C 250 100, 252 72, 255 42 C 258 72, 260 100, 255 122 Z"/>
-          <path class="flame yellow" d="M315 122 C 310 100, 312 75, 315 45 C 318 75, 320 100, 315 122 Z"/>
-          <path class="flame yellow" d="M375 122 C 370 100, 372 72, 375 42 C 378 72, 380 100, 375 122 Z"/>
-        </g>
-      </svg>
-    </div>
-  </div>
-</div>
-      </div>
-<!-- FÍSICA -->
-<section class="physics" id="fisica">
-  <div class="container">
-    <p class="section-label">La física detrás</p>
-    <h2 class="section-title">Tres fenómenos.<br>Una experiencia.</h2>
-
-    <div class="physics-cards">
-
-      <div class="phys-card">
-        <span class="phys-number">01</span>
-        <span class="phys-icon">🔥</span>
-        <h3>Tubo de Rubens</h3>
-        <p>
-          Gas inflamable fluye por un tubo perforado. El sonido crea ondas
-          estacionarias que varían la presión de salida, modulando la altura
-          de las llamas. Cada frecuencia genera un patrón único y visible.
-        </p>
-      </div>
-
-      <div class="phys-card">
-        <span class="phys-number">02</span>
-        <span class="phys-icon">〰</span>
-        <h3>Theremin & ondas</h3>
-        <p>
-          El theremin detecta la posición de las manos mediante campos
-          electromagnéticos y genera frecuencias continuas. Es el único
-          instrumento musical sin contacto —pura física cuántica hecha arte.
-        </p>
-      </div>
-
-      <div class="phys-card">
-        <span class="phys-number">03</span>
-        <span class="phys-icon">🌈</span>
-        <h3>Transiciones electrónicas</h3>
-        <p>
-          Sales de litio, cobre, potasio, sodio y estroncio colocadas sobre el sistema
-          son excitadas por las llamas. Sus electrones saltan a niveles energéticos superiores
-          y al regresar emiten fotones de color exacto y único para cada elemento.
-          Química cuántica visible a simple vista.
-        </p>
-      </div>
-
+    <div class="concepto-visual reveal reveal-delay-3">
+      <canvas id="rubens-canvas"></canvas>
+      <div id="audio-indicator"></div>
+      <div class="canvas-label" id="freq-label">Tubo de Rubens — Audio reactivo</div>
     </div>
   </div>
 </section>
 
-<!-- EXPERIENCIA -->
-<section class="experience" id="experiencia">
-  <div class="container">
-    <p class="section-label">El flujo</p>
-    <h2 class="section-title">La experiencia<br>paso a paso</h2>
-
-    <div class="exp-timeline">
-
-      <div class="exp-step">
-        <div class="exp-dot">01</div>
-        <div class="exp-body">
-          <h3>El sonido entra al sistema</h3>
-          <p>Puede ser el theremin —tocado con las manos sin contacto físico— o cualquier señal
-          de audio: música, voz, un sintetizador, incluso el celular conectado al auxiliar.
-          El sistema funciona como un parlante de alta potencia que convierte cualquier frecuencia
-          en patrón de llama. La barrera de entrada es cero.</p>
-        </div>
-      </div>
-
-      <div class="exp-step">
-        <div class="exp-dot">02</div>
-        <div class="exp-body">
-          <h3>Las llamas despiertan</h3>
-          <p>El Tubo de Rubens conectado al theremin responde en tiempo real.
-          Notas bajas crean llamas altas y espaciadas; notas altas generan
-          múltiples llamas pequeñas y densas. La onda estacionaria se vuelve visible.</p>
-        </div>
-      </div>
-
-      <div class="exp-step">
-        <div class="exp-dot">03</div>
-        <div class="exp-body">
-          <h3>Las sales emiten sus colores</h3>
-          <p>Las llamas activan las sales de distintos elementos ubicadas sobre el tubo.
-          Litio emite rojo carmesí, sodio naranja intenso, cobre verde brillante, potasio violeta.
-          No es luz artificial: es la radiación exacta de transiciones electrónicas —
-          el espectro de emisión de cada átomo hecho visible por la música.</p>
-        </div>
-      </div>
-
-      <div class="exp-step">
-        <div class="exp-dot">04</div>
-        <div class="exp-body">
-          <h3>Comprensión visceral</h3>
-          <p>El visitante no solo escucha: ve, siente y experimenta la física.
-          La resonancia, la longitud de onda, la frecuencia —conceptos abstractos—
-          se vuelven tangibles, memorables e impactantes.</p>
-        </div>
-      </div>
-
+<section id="fisica">
+  <div class="fisica-inner">
+    <div class="section-label reveal">La física detrás</div>
+    <h2 class="reveal reveal-delay-1">Tres fenómenos.<br>Una experiencia.</h2>
+    <div class="fenomenos">
+      <div class="fenomeno reveal reveal-delay-1"><div class="fenomeno-num">01</div><div class="fenomeno-icon">🔥</div><h3>Tubo de Rubens</h3><p>Gas inflamable fluye por un tubo perforado. El sonido crea ondas estacionarias que varían la presión de salida, modulando la altura de las llamas. Cada frecuencia genera un patrón único y visible.</p></div>
+      <div class="fenomeno reveal reveal-delay-2"><div class="fenomeno-num">02</div><div class="fenomeno-icon">〰️</div><h3>Theremin & ondas</h3><p>El theremin detecta la posición de las manos mediante campos electromagnéticos y genera frecuencias continuas. Es el único instrumento musical sin contacto —pura física cuántica hecha arte.</p></div>
+      <div class="fenomeno reveal reveal-delay-3"><div class="fenomeno-num">03</div><div class="fenomeno-icon">🌈</div><h3>Transiciones electrónicas</h3><p>Sales de litio, cobre, potasio, sodio y estroncio son excitadas por las llamas. Sus electrones emiten fotones de color exacto y único para cada elemento. Química cuántica visible a simple vista.</p></div>
     </div>
   </div>
 </section>
 
-<!-- MERCADOS -->
-<section class="markets" id="mercados">
-  <div class="container">
-    <p class="section-label">Canales de comercialización</p>
-    <h2 class="section-title">Un producto.<br>Tres mundos.</h2>
+<section id="experiencia">
+  <div class="section-label reveal">El flujo</div>
+  <h2 class="reveal reveal-delay-1">La experiencia<br>paso a paso</h2>
+  <div class="steps">
+    <div class="step active reveal"><div class="step-num">01</div><div class="step-content"><h3>El sonido entra al sistema</h3><p>Puede ser el theremin —tocado con las manos sin contacto físico— o cualquier señal de audio: música, voz, un sintetizador, incluso el celular. La barrera de entrada es cero.</p></div></div>
+    <div class="step reveal"><div class="step-num">02</div><div class="step-content"><h3>Las llamas despiertan</h3><p>El Tubo de Rubens responde en tiempo real. Notas bajas crean llamas altas y espaciadas; notas altas generan múltiples llamas pequeñas y densas. La onda estacionaria se vuelve visible.</p></div></div>
+    <div class="step reveal"><div class="step-num">03</div><div class="step-content"><h3>Las sales emiten sus colores</h3><p>Las llamas activan las sales de distintos elementos. Litio rojo carmesí, sodio naranja, cobre verde brillante, potasio violeta. No es luz artificial: es la radiación exacta de cada átomo.</p></div></div>
+    <div class="step reveal"><div class="step-num">04</div><div class="step-content"><h3>Comprensión visceral</h3><p>El visitante no solo escucha: ve, siente y experimenta la física. La resonancia, la longitud de onda, la frecuencia —conceptos abstractos— se vuelven tangibles, memorables e impactantes.</p></div></div>
+  </div>
+</section>
 
-    <div class="markets-grid">
-
-      <div class="market-card museo">
-        <span class="market-tag">Museo Interactivo</span>
-        <h3>Ciencia<br>Viva</h3>
-        <p>Instalación permanente o temporal en museos de ciencia, tecnología y arte.
-        Conecta con audiencias escolares, familias y turistas mediante la física
-        experimental directa.</p>
-        <ul class="market-perks">
-          <li>Módulo educativo incluido con guía docente</li>
-          <li>Compatible con currículos de física (ondas, resonancia)</li>
-          <li>Alta durabilidad para uso continuo</li>
-          <li>Escalable: versión mini o instalación completa</li>
-        </ul>
-      </div>
-
-      <div class="market-card live">
-        <span class="market-tag">Show en Vivo</span>
-        <h3>Concierto<br>Visual</h3>
-        <p>Espectáculo escénico donde un músico interpreta en theremin en tiempo real
-        mientras el Tubo de Rubens y el sistema lumínico crean una experiencia
-        audiovisual única e irrepetible.</p>
-        <ul class="market-perks">
-          <li>Performance teatral con narrativa científica</li>
-          <li>Ideal para festivales de ciencia y arte</li>
-          <li>Rider técnico modular, montar en 4 horas</li>
-          <li>Capacidad para auditorios de 50–2000 personas</li>
-        </ul>
-      </div>
-
-      <div class="market-card rave">
-        <span class="market-tag">Rave / Club</span>
-        <h3>Physics<br>Rave</h3>
-        <p>Instalación psicodélica integrada en el floor de baile. Los DJs
-        conectan su señal al sistema: las llamas y el espectro de color
-        responden al kick, el bass y la melodía en tiempo real.</p>
-        <ul class="market-perks">
-          <li>Integración con controladores MIDI y modulares</li>
-          <li>Efecto visual sin pantallas ni proyectores</li>
-          <li>Elemento diferenciador y viral en redes</li>
-          <li>Certificado de seguridad ignífuga incluido</li>
-        </ul>
-      </div>
-
+<section id="mercados">
+  <div class="mercados-inner">
+    <div class="section-label reveal">Canales</div>
+    <h2 class="reveal reveal-delay-1">Un producto.<br>Tres mundos.</h2>
+    <div class="mercados-grid">
+      <div class="mercado reveal reveal-delay-1"><div class="mercado-accent"></div><div class="mercado-tag">Museo Interactivo</div><h3>Ciencia Viva</h3><p>Instalación permanente o temporal en museos de ciencia, tecnología y arte. Conecta con audiencias escolares, familias y turistas mediante la física experimental directa.</p><ul><li>Módulo educativo incluido con guía docente</li><li>Compatible con currículos de física</li><li>Alta durabilidad para uso continuo</li><li>Escalable: versión mini o instalación completa</li></ul></div>
+      <div class="mercado reveal reveal-delay-2"><div class="mercado-accent"></div><div class="mercado-tag">Show en Vivo</div><h3>Concierto Visual</h3><p>Espectáculo escénico donde un músico interpreta en theremin mientras el Tubo de Rubens crea una experiencia audiovisual única e irrepetible.</p><ul><li>Performance teatral con narrativa científica</li><li>Ideal para festivales de ciencia y arte</li><li>Rider técnico modular, montar en 4 horas</li><li>Capacidad para auditorios de 50–2000 personas</li></ul></div>
+      <div class="mercado reveal reveal-delay-3"><div class="mercado-accent"></div><div class="mercado-tag">Rave / Club</div><h3>Physics Rave</h3><p>Instalación psicodélica integrada en el floor de baile. Los DJs conectan su señal: las llamas y el espectro de color responden al kick, el bass y la melodía en tiempo real.</p><ul><li>Integración con controladores MIDI y modulares</li><li>Efecto visual sin pantallas ni proyectores</li><li>Elemento diferenciador y viral en redes</li><li>Certificado de seguridad ignífuga incluido</li></ul></div>
     </div>
   </div>
 </section>
 
-<!-- TECH SPEC -->
-<section class="tech" id="tech">
-  <div class="container">
-    <p class="section-label">Especificaciones técnicas</p>
-    <h2 class="section-title">Construido para<br>impactar.</h2>
-
-    <div class="spec-grid">
-
-      <ul class="spec-list">
-        <li class="spec-item">
-          <span class="spec-key">Theremin</span>
-          <span class="spec-val">Moog Etherwave / Custom</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Tubo de Rubens</span>
-          <span class="spec-val fire">120 cm × 4 cm Ø · 40 orificios</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Gas</span>
-          <span class="spec-val">Propano / GLP regulado</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Rango de frecuencias</span>
-          <span class="spec-val">50 Hz — 4,000 Hz</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Sistema lumínico</span>
-          <span class="spec-val gold">LED RGBW + control DMX</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Mapeo cromático</span>
-          <span class="spec-val">Software propio en tiempo real</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Potencia eléctrica</span>
-          <span class="spec-val">220V / 15A máx.</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Área de instalación</span>
-          <span class="spec-val">Desde 4m²</span>
-        </li>
-        <li class="spec-item">
-          <span class="spec-key">Certificación</span>
-          <span class="spec-val fire">Seguridad ignífuga · NTC / CE</span>
-        </li>
-      </ul>
-
-      <div class="differentiators">
-        <div class="diff-item">
-          <h4>Sin pantallas. Sin proyecciones.</h4>
-          <p>La experiencia ocurre en el mundo físico. Las llamas son reales, el gas es real,
-          la física es real. No hay intermediación digital en el espectáculo visual.</p>
-        </div>
-        <div class="diff-item">
-          <h4>Interactivo desde el primer segundo.</h4>
-          <p>Cualquier persona puede tocar el theremin sin entrenamiento previo.
-          La barrera de entrada es cero. El impacto es inmediato.</p>
-        </div>
-        <div class="diff-item">
-          <h4>Educativo + espectacular.</h4>
-          <p>Funciona como herramienta pedagógica en un museo y como instalación de arte
-          en un festival. El mismo sistema, dos lecturas.</p>
-        </div>
-        <div class="diff-item">
-          <h4>Altamente fotografiable y viral.</h4>
-          <p>Las llamas respondiendo a la música son un espectáculo irresistible para redes
-          sociales. Genera contenido orgánico para los espacios que lo adopten.</p>
-        </div>
-      </div>
-
+<section id="specs">
+  <div class="section-label reveal">Especificaciones técnicas</div>
+  <h2 class="reveal reveal-delay-1">Construido para<br>impactar.</h2>
+  <div class="specs-grid">
+    <table class="spec-table reveal reveal-delay-2">
+      <tr><td>Theremin</td><td>Moog Etherwave / Custom</td></tr>
+      <tr><td>Tubo de Rubens</td><td>120 cm × 4 cm Ø · 40 orificios</td></tr>
+      <tr><td>Gas</td><td>Propano / GLP regulado</td></tr>
+      <tr><td>Rango de frecuencias</td><td>50 Hz — 4,000 Hz</td></tr>
+      <tr><td>Sistema lumínico</td><td>LED RGBW + control DMX</td></tr>
+      <tr><td>Mapeo cromático</td><td>Software propio en tiempo real</td></tr>
+      <tr><td>Potencia eléctrica</td><td>220V / 15A máx.</td></tr>
+      <tr><td>Área de instalación</td><td>Desde 4m²</td></tr>
+      <tr><td>Certificación</td><td>Seguridad ignífuga · NTC / CE</td></tr>
+    </table>
+    <div class="specs-props reveal reveal-delay-3">
+      <div class="spec-prop"><h4>Sin pantallas. Sin proyecciones.</h4><p>La experiencia ocurre en el mundo físico. Las llamas son reales, el gas es real, la física es real. No hay intermediación digital en el espectáculo visual.</p></div>
+      <div class="spec-prop"><h4>Interactivo desde el primer segundo.</h4><p>Cualquier persona puede tocar el theremin sin entrenamiento previo. La barrera de entrada es cero. El impacto es inmediato.</p></div>
+      <div class="spec-prop"><h4>Educativo + espectacular.</h4><p>Funciona como herramienta pedagógica en un museo y como instalación de arte en un festival. El mismo sistema, dos lecturas.</p></div>
+      <div class="spec-prop"><h4>Altamente fotografiable y viral.</h4><p>Las llamas respondiendo a la música son un espectáculo irresistible para redes sociales. Genera contenido orgánico para los espacios que lo adopten.</p></div>
     </div>
   </div>
 </section>
 
-<!-- CTA -->
-<section class="cta-section" id="contacto">
-  <div class="cta-bg"></div>
-  <div class="container">
-    <p class="section-label">¿Listo para encender la física?</p>
-    <h2 class="section-title">Hagámoslo<br><span style="background: linear-gradient(135deg, #FF4B12, #FFD700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">arder.</span></h2>
-    <p>
-      Estamos listos para presentar una demo en vivo, enviar specs técnicas
-      o co-diseñar la instalación a la medida de tu espacio.
-    </p>
-    <div class="cta-buttons">
-      <a href="/cdn-cgi/l/email-protection#4c2423202d0c3f2322252f2d622f23" class="btn-primary">Agendar reunión</a>
-      <a href="#" class="btn-secondary">Descargar dossier</a>
+<section id="contacto">
+  <div class="contacto-inner">
+    <div class="section-label reveal" style="justify-content:center">¿Listo?</div>
+    <h2 class="reveal reveal-delay-1">Hagámoslo<br>arder.</h2>
+    <p class="reveal reveal-delay-2">Estamos listos para presentar una demo en vivo, enviar specs técnicas o co-diseñar la instalación a la medida de tu espacio.</p>
+    <div class="cta-group reveal reveal-delay-3">
+      <a href="mailto:info@sonica.co" class="btn-fire"><span>Agendar reunión</span></a>
+      <a href="#" class="btn-outline">Descargar dossier</a>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
-  <div class="logo">SÓ<span>NICA</span></div>
+  <div class="logo">SÓNICA</div>
   <p>© 2025 · Física. Sonido. Fuego.</p>
-  <p><a href="/cdn-cgi/l/email-protection" class="_cf_email_" data-cfemail="0961666568497a6667606a68276a66">[email&#160;protected]</a></p>
+  <a href="mailto:info@sonica.co">info@sonica.co</a>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // Generate flame particles in hero
-  const container = document.getElementById('particles');
-  const colors = ['#FF4B12','#FF8C00','#FFD700','#ff6030','#ffaa20'];
+<script>
+/* ══════ CURSOR ══════ */
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let cx=0,cy=0,rx=0,ry=0;
+document.addEventListener('mousemove', e=>{cx=e.clientX;cy=e.clientY;});
+(function loop(){
+  cursor.style.left=cx+'px'; cursor.style.top=cy+'px';
+  rx+=(cx-rx)*.12; ry+=(cy-ry)*.12;
+  cursorRing.style.left=rx+'px'; cursorRing.style.top=ry+'px';
+  requestAnimationFrame(loop);
+})();
+document.querySelectorAll('a,button,.htag,.fenomeno,.mercado').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.style.width='20px';cursor.style.height='20px';cursorRing.style.width='56px';cursorRing.style.height='56px';});
+  el.addEventListener('mouseleave',()=>{cursor.style.width='12px';cursor.style.height='12px';cursorRing.style.width='36px';cursorRing.style.height='36px';});
+});
 
-  for (let i = 0; i < 60; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 1;
-    const hue = colors[Math.floor(Math.random() * colors.length)];
-    p.style.cssText = `
-      left: ${Math.random() * 100}%;
-      width: ${size}px;
-      height: ${size * (Math.random() * 8 + 4)}px;
-      background: ${hue};
-      animation-duration: ${Math.random() * 5 + 4}s;
-      animation-delay: ${Math.random() * 6}s;
-      opacity: 0;
-      box-shadow: 0 0 ${size * 3}px ${hue};
-    `;
-    container.appendChild(p);
+/* ══════ AUDIO ENGINE (Tone.js) ══════ */
+let audioStarted = false;
+let isPlaying = false;
+let masterVol, thereminSynth, droneSynth, padSynth, analyser;
+let audioAmp = 0;       // 0–1 amplitude exposed globally
+let currentFreq = 220;  // current theremin note freq
+let melodyIdx = 0;
+let melodyTimer = null;
+
+// Theremin melody — haunting pentatonic phrases
+const MELODY = [
+  [220,1.8],[247,0.9],[294,1.3],[247,0.7],
+  [220,2.2],[185,1.1],[207,0.8],[247,1.6],
+  [330,1.9],[370,0.8],[330,1.2],[294,1.8],
+  [247,2.4],[220,1.5],[185,0.9],[165,2.4],
+  [196,1.2],[220,1.0],[262,1.6],[294,2.0],
+  [330,1.0],[311,0.8],[294,1.4],[262,2.0],
+];
+
+async function initAudio() {
+  await Tone.start();
+
+  masterVol = new Tone.Volume(-10).toDestination();
+
+  // Theremin — pure sine + vibrato + reverb
+  const rev1 = new Tone.Reverb({decay:5, wet:0.5}).connect(masterVol);
+  const vib  = new Tone.Vibrato({frequency:4.5, depth:0.04, wet:0.6}).connect(rev1);
+  thereminSynth = new Tone.Synth({
+    oscillator:{type:'sine'},
+    envelope:{attack:0.7, decay:0.1, sustain:0.95, release:2.0},
+    volume:-6,
+  }).connect(vib);
+
+  // Drone — low sub atmosphere
+  const rev2 = new Tone.Reverb({decay:10, wet:0.75}).connect(masterVol);
+  const filt = new Tone.Filter({frequency:350, type:'lowpass', Q:1}).connect(rev2);
+  droneSynth = new Tone.Synth({
+    oscillator:{type:'triangle'},
+    envelope:{attack:3, decay:0, sustain:1, release:4},
+    volume:-22,
+  }).connect(filt);
+  droneSynth.triggerAttack('A1');
+
+  // Pad — slow chord shimmer
+  const rev3 = new Tone.Reverb({decay:8, wet:0.8}).connect(masterVol);
+  const cho  = new Tone.Chorus({frequency:1.2, delayTime:2.5, depth:0.4, wet:0.5}).connect(rev3);
+  padSynth = new Tone.PolySynth(Tone.Synth, {
+    oscillator:{type:'sine'},
+    envelope:{attack:2.5, decay:0, sustain:1, release:5},
+    volume:-28,
+  }).connect(cho);
+  padSynth.triggerAttack(['A2','E3','A3']);
+
+  // Analyser
+  analyser = new Tone.Analyser({type:'waveform', size:256});
+  masterVol.connect(analyser);
+
+  // Volume control
+  document.getElementById('vol-slider').addEventListener('input', e=>{
+    masterVol.volume.value = parseFloat(e.target.value);
+  });
+
+  audioStarted = true;
+}
+
+function playNextNote() {
+  if (!isPlaying || !thereminSynth) return;
+  const [f, d] = MELODY[melodyIdx % MELODY.length];
+  currentFreq = f;
+  thereminSynth.triggerAttackRelease(f, d - 0.15);
+  document.getElementById('player-state').textContent =
+    `${Math.round(f)} Hz · ${noteLabel(f)}`;
+  melodyIdx++;
+  melodyTimer = setTimeout(playNextNote, d * 1000);
+}
+
+function noteLabel(f) {
+  const ns=['A','A#','B','C','C#','D','D#','E','F','F#','G','G#'];
+  const n=Math.round(12*Math.log2(f/440))+57;
+  return ns[((n%12)+12)%12]+Math.floor(n/12);
+}
+
+// Mini waveform canvas
+const vizCanvas = document.getElementById('viz-mini');
+const vizCtx = vizCanvas.getContext('2d');
+vizCanvas.width=64; vizCanvas.height=30;
+
+function drawVizMini() {
+  vizCtx.clearRect(0,0,64,30);
+  if (!analyser || !isPlaying) {
+    vizCtx.strokeStyle='rgba(255,150,0,.2)';
+    vizCtx.lineWidth=1.2; vizCtx.beginPath();
+    vizCtx.moveTo(0,15); vizCtx.lineTo(64,15); vizCtx.stroke();
+    return;
+  }
+  const data = analyser.getValue();
+  let amp=0; for (let i=0;i<data.length;i++) amp=Math.max(amp,Math.abs(data[i]));
+  audioAmp = amp;
+
+  vizCtx.strokeStyle='rgba(255,170,30,.95)';
+  vizCtx.lineWidth=1.5; vizCtx.beginPath();
+  for (let i=0;i<data.length;i++) {
+    const x=(i/data.length)*64, y=15+data[i]*26;
+    i===0?vizCtx.moveTo(x,y):vizCtx.lineTo(x,y);
+  }
+  vizCtx.stroke();
+  requestAnimationFrame(drawVizMini);
+}
+setInterval(()=>{ if(!isPlaying) drawVizMini(); }, 200);
+drawVizMini();
+
+// Play button
+const playBtn = document.getElementById('play-btn');
+const iconPlay = document.getElementById('icon-play');
+const iconPause = document.getElementById('icon-pause');
+const playerEl = document.getElementById('audio-player');
+const indicator = document.getElementById('audio-indicator');
+
+playBtn.addEventListener('click', async ()=>{
+  if (!audioStarted) {
+    document.getElementById('player-state').textContent='Cargando sintetizador…';
+    await initAudio();
+    isPlaying=true;
+    iconPlay.style.display='none'; iconPause.style.display='block';
+    playerEl.classList.add('playing');
+    indicator.classList.add('active');
+    playNextNote();
+    drawVizMini();
+  } else {
+    isPlaying=!isPlaying;
+    if (isPlaying) {
+      iconPlay.style.display='none'; iconPause.style.display='block';
+      playerEl.classList.add('playing');
+      indicator.classList.add('active');
+      droneSynth.triggerAttack('A1');
+      padSynth.triggerAttack(['A2','E3','A3']);
+      playNextNote();
+      drawVizMini();
+    } else {
+      iconPlay.style.display='block'; iconPause.style.display='none';
+      playerEl.classList.remove('playing');
+      indicator.classList.remove('active');
+      clearTimeout(melodyTimer);
+      thereminSynth.triggerRelease();
+      droneSynth.triggerRelease();
+      padSynth.releaseAll();
+      audioAmp=0;
+      document.getElementById('player-state').textContent='Pausado';
+    }
+  }
+});
+
+/* ══════ HERO FLAMES (audio reactive) ══════ */
+const heroCanvas = document.getElementById('flame-canvas');
+const hCtx = heroCanvas.getContext('2d');
+function resizeHero(){ heroCanvas.width=heroCanvas.offsetWidth; heroCanvas.height=heroCanvas.offsetHeight; }
+resizeHero(); window.addEventListener('resize',resizeHero);
+
+class Particle {
+  constructor(init){ this.reset(init); }
+  reset(init){
+    this.x=Math.random()*heroCanvas.width;
+    this.y=init?Math.random()*heroCanvas.height:heroCanvas.height+20;
+    this.vy=-(Math.random()*1.5+0.5);
+    this.vx=(Math.random()-.5)*.8;
+    this.life=0; this.maxLife=Math.random()*120+80;
+    this.size=Math.random()*40+10;
+    this.hue=Math.random()*40;
+  }
+  update(amp){
+    const b=1+amp*4;
+    this.x+=this.vx+Math.sin(this.life*.05+this.x*.01)*.5;
+    this.y+=this.vy*b; this.life++;
+    if(this.life>this.maxLife) this.reset(false);
+  }
+  draw(ctx){
+    const t=this.life/this.maxLife;
+    const a=t<.2?t/.2:1-(t-.2)/.8;
+    const s=this.size*(1-t*.5);
+    const g=ctx.createRadialGradient(this.x,this.y,0,this.x,this.y,s);
+    const h=this.hue+t*30;
+    g.addColorStop(0,`hsla(${h},100%,80%,${a*.9})`);
+    g.addColorStop(.4,`hsla(${h-10},100%,55%,${a*.5})`);
+    g.addColorStop(1,`hsla(${h-20},100%,30%,0)`);
+    ctx.beginPath(); ctx.arc(this.x,this.y,s,0,Math.PI*2);
+    ctx.fillStyle=g; ctx.fill();
+  }
+}
+const particles=[];
+for(let i=0;i<190;i++) particles.push(new Particle(true));
+(function heroLoop(){
+  hCtx.clearRect(0,0,heroCanvas.width,heroCanvas.height);
+  hCtx.globalCompositeOperation='screen';
+  particles.forEach(p=>{ p.update(audioAmp); p.draw(hCtx); });
+  requestAnimationFrame(heroLoop);
+})();
+
+/* ══════ RUBENS TUBE — fully audio reactive ══════ */
+const rubensCanvas = document.getElementById('rubens-canvas');
+const rCtx = rubensCanvas.getContext('2d');
+function resizeRubens(){ rubensCanvas.width=rubensCanvas.offsetWidth; rubensCanvas.height=rubensCanvas.offsetHeight; }
+resizeRubens(); window.addEventListener('resize',resizeRubens);
+
+let rubensT=0;
+let simFreq=220, simFreqDir=1;
+// Per-flame turbulence offsets for organic flicker
+const N_HOLES=46;
+const turbulence=Array.from({length:N_HOLES},(_,i)=>({
+  phase:Math.random()*Math.PI*2,
+  speed:0.05+Math.random()*.07,
+}));
+
+(function rubensLoop(){
+  const W=rubensCanvas.width, H=rubensCanvas.height;
+  rCtx.clearRect(0,0,W,H);
+  rCtx.fillStyle='#080608'; rCtx.fillRect(0,0,W,H);
+  rubensT+=0.012;
+
+  // Pick active source
+  let freq, amp;
+  if (audioStarted && isPlaying && audioAmp>.001) {
+    freq=currentFreq;
+    amp=Math.min(1, audioAmp*9);
+  } else {
+    simFreq+=simFreqDir*.6;
+    if(simFreq>750||simFreq<130) simFreqDir*=-1;
+    freq=simFreq; amp=0.28;
   }
 
-  // ── RUBENS TUBE CANVAS ANIMATION ──
-  const canvas = document.getElementById('rubensCanvas');
-  if (canvas) {
-    const ctx = canvas.getContext('2d');
-    const N = 60;
-    let W, H, baseY;
-    let phase = 0;
-    let freq = 2.5;
+  document.getElementById('freq-label').textContent = (audioStarted&&isPlaying)
+    ? `🔊 ${Math.round(freq)} Hz — reactivo al audio`
+    : `Tubo de Rubens — ${Math.round(freq)} Hz`;
 
-    const flameHeights = new Array(N).fill(0);
-    const targetHeights = new Array(N).fill(0);
-    const noiseOffsets = Array.from({length: N}, () => Math.random() * 100);
+  const tubeW=W*.84, tubeX=(W-tubeW)/2, tubeY=H*.70, tubeH=18;
+  const holeSpacing=tubeW/(N_HOLES-1);
+  const baseH = H*.10 + amp*H*.04;
+  const extraH = H*.20 + amp*H*.20;
 
-    function resize() {
-      W = canvas.offsetWidth;
-      H = canvas.offsetHeight;
-      canvas.width = W;
-      canvas.height = H;
-      baseY = H - 18;
+  // Background glow
+  const bg=rCtx.createRadialGradient(W/2,tubeY,0,W/2,tubeY,tubeW*.55);
+  bg.addColorStop(0,`rgba(255,70,0,${.03+amp*.07})`);
+  bg.addColorStop(1,'rgba(0,0,0,0)');
+  rCtx.fillStyle=bg; rCtx.fillRect(0,0,W,H);
+
+  // Flames
+  for(let i=0;i<N_HOLES;i++){
+    const hx=tubeX+i*holeSpacing;
+    const t=turbulence[i];
+    t.phase+=t.speed*(1+amp*1.5);
+
+    // Standing wave envelope
+    const cycles=freq/100;
+    const spatialPhase=(i/(N_HOLES-1))*Math.PI*2*cycles;
+    const standing=Math.pow(Math.abs(Math.sin(spatialPhase)),0.6);
+
+    // Organic flicker
+    const flicker=0.82+0.18*Math.sin(t.phase);
+    const flameH=(baseH+standing*extraH)*flicker;
+    const flameW=4+standing*5+amp*4;
+
+    // Layer 1 — outer warm glow
+    {
+      const lh=flameH, lw=flameW*1.5;
+      const g=rCtx.createLinearGradient(hx,tubeY,hx,tubeY-lh);
+      g.addColorStop(0,`rgba(255,50,0,${.38+amp*.25})`);
+      g.addColorStop(.5,`rgba(255,80,0,${.15+amp*.1})`);
+      g.addColorStop(1,'rgba(255,30,0,0)');
+      rCtx.beginPath();
+      rCtx.moveTo(hx-lw,tubeY);
+      rCtx.bezierCurveTo(hx-lw*1.4,tubeY-lh*.2,hx-lw*.5,tubeY-lh*.6,hx,tubeY-lh);
+      rCtx.bezierCurveTo(hx+lw*.5,tubeY-lh*.6,hx+lw*1.4,tubeY-lh*.2,hx+lw,tubeY);
+      rCtx.closePath(); rCtx.fillStyle=g; rCtx.fill();
     }
-
-    function simplex(x, t) {
-      return Math.sin(x * 0.8 + t) * 0.5 + Math.sin(x * 1.7 + t * 1.3) * 0.3 + Math.sin(x * 0.4 + t * 0.7) * 0.2;
+    // Layer 2 — orange body
+    {
+      const lh=flameH*.78, lw=flameW;
+      const g=rCtx.createLinearGradient(hx,tubeY,hx,tubeY-lh);
+      g.addColorStop(0,`rgba(255,140,10,${.65+amp*.25})`);
+      g.addColorStop(.4,`rgba(255,100,0,${.45+amp*.2})`);
+      g.addColorStop(1,'rgba(255,60,0,0)');
+      rCtx.beginPath();
+      rCtx.moveTo(hx-lw,tubeY);
+      rCtx.bezierCurveTo(hx-lw*1.2,tubeY-lh*.28,hx-lw*.3,tubeY-lh*.68,hx,tubeY-lh);
+      rCtx.bezierCurveTo(hx+lw*.3,tubeY-lh*.68,hx+lw*1.2,tubeY-lh*.28,hx+lw,tubeY);
+      rCtx.closePath(); rCtx.fillStyle=g; rCtx.fill();
     }
-
-    function drawFlame(x, height, flameW, alpha) {
-      if (height < 2) return;
-      const tipY = baseY - height;
-
-      // Outer flame — wide, orange→transparent
-      const gOuter = ctx.createLinearGradient(x, baseY, x, tipY);
-      gOuter.addColorStop(0,   rgba(220,50,5,${alpha}));
-      gOuter.addColorStop(0.25,rgba(255,100,10,${alpha * 0.9}));
-      gOuter.addColorStop(0.55,rgba(255,160,20,${alpha * 0.7}));
-      gOuter.addColorStop(0.82,rgba(60,180,220,${alpha * 0.45}));
-      gOuter.addColorStop(1,   rgba(30,140,255,0));
-
-      ctx.beginPath();
-      ctx.moveTo(x - flameW * 0.9, baseY);
-      ctx.bezierCurveTo(
-        x - flameW * 0.6, baseY - height * 0.4,
-        x - flameW * 0.15, tipY + height * 0.1,
-        x, tipY
-      );
-      ctx.bezierCurveTo(
-        x + flameW * 0.15, tipY + height * 0.1,
-        x + flameW * 0.6, baseY - height * 0.4,
-        x + flameW * 0.9, baseY
-      );
-      ctx.closePath();
-      ctx.fillStyle = gOuter;
-      ctx.fill();
-
-      // Inner bright core
-      const gInner = ctx.createLinearGradient(x, baseY, x, tipY);
-      gInner.addColorStop(0,   rgba(255,220,80,${alpha * 0.9}));
-      gInner.addColorStop(0.4, rgba(255,140,30,${alpha * 0.6}));
-      gInner.addColorStop(0.75,rgba(80,200,240,${alpha * 0.35}));
-      gInner.addColorStop(1,   rgba(40,160,255,0));
-
-      ctx.beginPath();
-      ctx.moveTo(x - flameW * 0.28, baseY);
-      ctx.bezierCurveTo(
-        x - flameW * 0.18, baseY - height * 0.45,
-        x - flameW * 0.04, tipY + height * 0.08,
-        x, tipY
-      );
-      ctx.bezierCurveTo(
-        x + flameW * 0.04, tipY + height * 0.08,
-        x + flameW * 0.18, baseY - height * 0.45,
-        x + flameW * 0.28, baseY
-      );
-      ctx.closePath();
-      ctx.fillStyle = gInner;
-      ctx.fill();
+    // Layer 3 — bright yellow/white core
+    {
+      const lh=flameH*.52, lw=flameW*.42;
+      const g=rCtx.createLinearGradient(hx,tubeY,hx,tubeY-lh);
+      g.addColorStop(0,`rgba(255,240,150,${.9+amp*.1})`);
+      g.addColorStop(.5,`rgba(255,200,60,${.7})`);
+      g.addColorStop(1,'rgba(255,160,20,0)');
+      rCtx.beginPath();
+      rCtx.moveTo(hx-lw,tubeY);
+      rCtx.bezierCurveTo(hx-lw*1.1,tubeY-lh*.3,hx-lw*.2,tubeY-lh*.7,hx,tubeY-lh);
+      rCtx.bezierCurveTo(hx+lw*.2,tubeY-lh*.7,hx+lw*1.1,tubeY-lh*.3,hx+lw,tubeY);
+      rCtx.closePath(); rCtx.fillStyle=g; rCtx.fill();
     }
-
-    function frame() {
-      if (!canvas.offsetWidth) { requestAnimationFrame(frame); return; }
-      if (canvas.offsetWidth !== W) resize();
-
-      phase += 0.022;
-      freq = 2.5 + Math.sin(phase * 0.11) * 1.2;
-
-      ctx.clearRect(0, 0, W, H);
-
-      // Dark tube background glow
-      const bgGrad = ctx.createLinearGradient(0, H * 0.3, 0, H);
-      bgGrad.addColorStop(0, 'rgba(40,10,2,0)');
-      bgGrad.addColorStop(1, 'rgba(60,18,4,0.35)');
-      ctx.fillStyle = bgGrad;
-      ctx.fillRect(0, 0, W, H);
-
-      const margin = 10;
-      const spacing = (W - margin * 2) / (N - 1);
-
-      for (let i = 0; i < N; i++) {
-        const t = i / (N - 1);
-        const waveVal = Math.abs(Math.sin(t * Math.PI * freq + phase * 0.4));
-        const noise = simplex(noiseOffsets[i], phase * 0.6) * 0.15;
-        targetHeights[i] = (waveVal + noise) * (H - 28) * 0.88;
-        flameHeights[i] += (targetHeights[i] - flameHeights[i]) * 0.18;
-      }
-
-      // Draw flames back to front (tallest last for overlap)
-      const order = Array.from({length: N}, (_, i) => i).sort((a, b) => flameHeights[a] - flameHeights[b]);
-      for (const i of order) {
-        const x = margin + i * spacing;
-        const h = Math.max(0, flameHeights[i]);
-        const flameW = spacing * 0.62;
-        drawFlame(x, h, flameW, 0.88);
-      }
-
-      // Tube base line
-      ctx.fillStyle = 'rgba(35,12,3,0.9)';
-      ctx.fillRect(0, baseY + 1, W, H - baseY - 1);
-
-      // Base dots (orifice indicators)
-      for (let i = 0; i < N; i++) {
-        const x = margin + i * spacing;
-        ctx.beginPath();
-        ctx.arc(x, baseY + 5, 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = flameHeights[i] > H * 0.08 ? 'rgba(100,160,220,0.8)' : 'rgba(80,40,20,0.6)';
-        ctx.fill();
-      }
-
-      requestAnimationFrame(frame);
-    }
-
-    resize();
-    window.addEventListener('resize', resize);
-    frame();
   }
 
+  // Tube body
+  const tg=rCtx.createLinearGradient(0,tubeY,0,tubeY+tubeH);
+  tg.addColorStop(0,'#3a2a10'); tg.addColorStop(1,'#1a1008');
+  rCtx.fillStyle=tg;
+  rCtx.beginPath(); rCtx.roundRect(tubeX-10,tubeY,tubeW+20,tubeH,3); rCtx.fill();
+  rCtx.fillStyle='rgba(255,200,100,.07)';
+  rCtx.beginPath(); rCtx.roundRect(tubeX-10,tubeY,tubeW+20,5,[3,3,0,0]); rCtx.fill();
 
-  // Smooth reveal on scroll
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.style.opacity = '1';
+  // Waveform guide
+  const wAlpha = .12 + amp*.25;
+  rCtx.save(); rCtx.globalAlpha=wAlpha;
+  rCtx.strokeStyle='rgba(255,190,60,1)'; rCtx.lineWidth=1.5;
+  rCtx.beginPath();
+  for(let x=0;x<W;x++){
+    const tt=x/W;
+    const ph=tt*Math.PI*2*(freq/100);
+    const y=H*.88+Math.sin(ph+rubensT*2)*Math.min(18,10+amp*20);
+    x===0?rCtx.moveTo(x,y):rCtx.lineTo(x,y);
+  }
+  rCtx.stroke(); rCtx.restore();
 
-    <audio id="audioElement" crossorigin="anonymous" src="musica.mp3"></audio>
-    <script src="script.js"></script>
-    
+  requestAnimationFrame(rubensLoop);
+})();
+
+/* ══════ SCROLL PROGRESS ══════ */
+window.addEventListener('scroll',()=>{
+  const p=window.scrollY/(document.body.scrollHeight-window.innerHeight);
+  document.getElementById('freq-bar').style.transform=`scaleX(${p})`;
+});
+
+/* ══════ SCROLL REVEAL ══════ */
+const ro=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');ro.unobserve(e.target);}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+const so=new IntersectionObserver(es=>es.forEach(e=>{e.target.classList.toggle('active',e.isIntersecting);}),{threshold:.5});
+document.querySelectorAll('.step').forEach(s=>so.observe(s));
+</script>
 </body>
 </html>
