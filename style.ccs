@@ -1,76 +1,99 @@
-body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; padding: 0; overflow-y: auto; }
+body { 
+  background: #0a0a0a; 
+  color: white; 
+  font-family: 'Space Grotesk', sans-serif; /* Un toque más moderno */
+  margin: 0; 
+  padding: 0; 
+  overflow-x: hidden; /* Evita scroll lateral molesto */
+  overflow-y: auto; 
+}
 
 .rubens-main-container {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row; /* Alineación horizontal por defecto */
+  flex-wrap: wrap; 
   justify-content: center;
-  align-items: center;
-  gap: 40px;
-  padding: 50px 20px;
-  min-height: 400px;
+  align-items: flex-start; /* Alinea arriba para que el texto y tubo coincidan */
+  gap: 50px;
+  padding: 80px 5%; /* Más aire arriba y abajo */
+  min-height: 100vh;
 }
 
 .rubens-text-column {
-  flex: 1;
-  max-width: 400px;
-  line-height: 1.6;
+  flex: 1 1 400px; /* Crece y encoge, pero intenta mantener 400px */
+  max-width: 500px; 
+  line-height: 1.8;
+  font-size: 1.1rem;
 }
 
 .rubens-visual-column {
-  flex: 1;
-  max-width: 500px; /* Un poco más de aire para el experimento */
+  flex: 1 1 450px;
+  max-width: 600px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 30px;
 }
 
 #playButton {
   background: #ff4500;
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 5px;
+  padding: 15px 30px;
+  border-radius: 8px;
   cursor: pointer;
   font-weight: bold;
-  transition: 0.2s;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
 }
 
-#playButton:hover { background: #e63e00; }
+#playButton:hover { 
+  background: #e63e00; 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 69, 0, 0.5);
+}
 
 .graphics-area {
   display: flex;
-  align-items: flex-end;
-  gap: 15px;
+  align-items: flex-end; /* Importante: Todo toca el "suelo" */
+  justify-content: center;
+  gap: 20px;
   width: 100%;
 }
 
+/* CORRECCIÓN CLAVE: Esto encoge los cuadros del parlante y theremin */
 .devices {
-  width: 60px;
-  flex: 0 0 60px; /* Bloqueamos el tamaño para que no crezcan */
+  flex: 0 0 70px; /* Tamaño fijo de 70px, no se mueven de ahí */
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 15px;
 }
 
-.icon-svg { width: 100%; height: auto; }
-
-.rubens-svg { 
-  flex: 2; /* El tubo ahora manda en el espacio */
+.icon-svg { 
+  width: 100%; 
   height: auto; 
-  max-width: 350px; 
+  opacity: 0.8; /* Les da un toque más elegante */
+}
+
+/* EL TUBO: Ahora es el que manda */
+.rubens-svg { 
+  flex: 1; 
+  height: auto; 
+  max-width: 450px; /* Más grande para que destaque */
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.05));
 }
 
 .flame {
-  transform: scaleY(0.3); /* Tamaño base fundamental */
+  transform: scaleY(0.3); /* Base para el JS */
   transform-origin: bottom center;
   mix-blend-mode: screen;
   filter: url(#flame-blur);
   transition: transform 0.1s ease-out;
 }
 
-/* Tus colores originales intactos */
-.purple { fill: url(#grad-purple); filter: drop-shadow(0 0 5px #b000ff); }
-.blue   { fill: url(#grad-blue);   filter: drop-shadow(0 0 5px #00bbff); }
-.green  { fill: url(#grad-green);  filter: drop-shadow(0 0 5px #00ff88); }
-.yellow { fill: url(#grad-yellow); filter: drop-shadow(0 0 5px #ffb400); }
+/* Colores con brillo reforzado */
+.purple { fill: #b000ff; filter: drop-shadow(0 0 8px #b000ff); }
+.blue   { fill: #00bbff; filter: drop-shadow(0 0 8px #00bbff); }
+.green  { fill: #00ff88; filter: drop-shadow(0 0 8px #00ff88); }
+.yellow { fill: #ffb400; filter: drop-shadow(0 0 8px #ffb400); }
