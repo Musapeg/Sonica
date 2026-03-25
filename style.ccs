@@ -1,29 +1,19 @@
-body { 
-  background: #0a0a0a; 
-  color: white; 
-  font-family: 'Space Grotesk', sans-serif; /* Un toque más moderno */
-  margin: 0; 
-  padding: 0; 
-  overflow-x: hidden; /* Evita scroll lateral molesto */
-  overflow-y: auto; 
-}
+body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; padding: 0; overflow-y: auto; overflow-x: hidden; }
 
 .rubens-main-container {
   display: flex;
-  flex-direction: row; /* Alineación horizontal por defecto */
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
   justify-content: center;
-  align-items: flex-start; /* Alinea arriba para que el texto y tubo coincidan */
-  gap: 50px;
-  padding: 80px 5%; /* Más aire arriba y abajo */
-  min-height: 100vh;
+  align-items: flex-start; /* Alinea todo arriba */
+  gap: 40px;
+  padding: 50px 20px;
+  min-height: 400px;
 }
 
 .rubens-text-column {
-  flex: 1 1 400px; /* Crece y encoge, pero intenta mantener 400px */
-  max-width: 500px; 
-  line-height: 1.8;
-  font-size: 1.1rem;
+  flex: 1 1 400px;
+  max-width: 500px;
+  line-height: 1.6;
 }
 
 .rubens-visual-column {
@@ -32,67 +22,57 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: 20px;
 }
 
 #playButton {
   background: #ff4500;
   color: white;
   border: none;
-  padding: 15px 30px;
-  border-radius: 8px;
+  padding: 12px 24px;
+  border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(255, 69, 0, 0.3);
+  transition: 0.2s;
 }
 
-#playButton:hover { 
-  background: #e63e00; 
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 69, 0, 0.5);
-}
+#playButton:hover { background: #e63e00; }
 
 .graphics-area {
   display: flex;
-  align-items: flex-end; /* Importante: Todo toca el "suelo" */
+  align-items: flex-end; /* Todo toca el suelo */
   justify-content: center;
-  gap: 20px;
+  gap: 15px;
   width: 100%;
 }
 
-/* CORRECCIÓN CLAVE: Esto encoge los cuadros del parlante y theremin */
+/* ARREGLO DE LOS CUADROS GIGANTES */
 .devices {
-  flex: 0 0 70px; /* Tamaño fijo de 70px, no se mueven de ahí */
+  flex: 0 0 60px; /* Tamaño estricto, no crecerán más */
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 10px;
 }
 
-.icon-svg { 
-  width: 100%; 
-  height: auto; 
-  opacity: 0.8; /* Les da un toque más elegante */
-}
+.icon-svg { width: 100%; height: auto; }
 
-/* EL TUBO: Ahora es el que manda */
+/* ARREGLO DEL TUBO */
 .rubens-svg { 
   flex: 1; 
   height: auto; 
-  max-width: 450px; /* Más grande para que destaque */
-  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.05));
+  width: 100%;
+  max-width: 450px; /* El tubo ahora es grande y protagonista */
 }
 
+/* ARREGLO DE LAS LLAMAS (Movimiento y tamaño base) */
 .flame {
-  transform: scaleY(0.3); /* Base para el JS */
+  transform: scaleY(0.3); 
   transform-origin: bottom center;
   mix-blend-mode: screen;
-  filter: url(#flame-blur);
-  transition: transform 0.1s ease-out;
+  transition: transform 0.05s ease-out; /* Más reactivo a la música */
 }
 
-/* Colores con brillo reforzado */
+/* ARREGLO DE COLOR (Usamos colores sólidos para evitar el error de SVG vacío) */
 .purple { fill: #b000ff; filter: drop-shadow(0 0 8px #b000ff); }
 .blue   { fill: #00bbff; filter: drop-shadow(0 0 8px #00bbff); }
 .green  { fill: #00ff88; filter: drop-shadow(0 0 8px #00ff88); }
