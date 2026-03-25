@@ -2,7 +2,7 @@ body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; pa
 
 .rubens-main-container {
   display: flex;
-  flex-wrap: wrap; /* Para que en móviles se ponga uno abajo de otro */
+  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 40px;
@@ -12,13 +12,13 @@ body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; pa
 
 .rubens-text-column {
   flex: 1;
-  max-width: 400px; /* Evita que el texto se estire mucho */
+  max-width: 400px;
   line-height: 1.6;
 }
 
 .rubens-visual-column {
   flex: 1;
-  max-width: 450px; /* Limita el tamaño del experimento */
+  max-width: 500px; /* Un poco más de aire para el experimento */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -29,11 +29,14 @@ body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; pa
   background: #ff4500;
   color: white;
   border: none;
-  padding: 10px 20px;
+  padding: 12px 24px;
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
+  transition: 0.2s;
 }
+
+#playButton:hover { background: #e63e00; }
 
 .graphics-area {
   display: flex;
@@ -44,21 +47,29 @@ body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; pa
 
 .devices {
   width: 60px;
+  flex: 0 0 60px; /* Bloqueamos el tamaño para que no crezcan */
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
 .icon-svg { width: 100%; height: auto; }
-.rubens-svg { flex: 1; height: auto; max-width: 300px; }
+
+.rubens-svg { 
+  flex: 2; /* El tubo ahora manda en el espacio */
+  height: auto; 
+  max-width: 350px; 
+}
 
 .flame {
+  transform: scaleY(0.3); /* Tamaño base fundamental */
   transform-origin: bottom center;
   mix-blend-mode: screen;
   filter: url(#flame-blur);
   transition: transform 0.1s ease-out;
 }
 
+/* Tus colores originales intactos */
 .purple { fill: url(#grad-purple); filter: drop-shadow(0 0 5px #b000ff); }
 .blue   { fill: url(#grad-blue);   filter: drop-shadow(0 0 5px #00bbff); }
 .green  { fill: url(#grad-green);  filter: drop-shadow(0 0 5px #00ff88); }
