@@ -2,66 +2,37 @@ body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; pa
 
 .rubens-main-container {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  align-items: flex-start; /* Alinea todo arriba */
-  gap: 40px;
-  padding: 50px 20px;
-  min-height: 400px;
-}
-
-.rubens-text-column {
-  flex: 1 1 400px;
-  max-width: 500px;
-  line-height: 1.6;
+  gap: 2rem;
+  align-items: center;
 }
 
 .rubens-visual-column {
-  flex: 1 1 450px;
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+  width: 100%;
 }
-
-#playButton {
-  background: #ff4500;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.2s;
-}
-
-#playButton:hover { background: #e63e00; }
 
 .graphics-area {
   display: flex;
-  align-items: flex-end; /* Todo toca el suelo */
-  justify-content: center;
-  gap: 15px;
-  width: 100%;
-}
-
-/* ARREGLO DE LOS CUADROS GIGANTES */
-.devices {
-  flex: 0 0 60px; /* Tamaño estricto, no crecerán más */
-  display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
 }
 
-.icon-svg { width: 100%; height: auto; }
+/* dispositivos más pequeños */
+.devices {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
 
-/* ARREGLO DEL TUBO */
-.rubens-svg { 
-  flex: 1; 
-  height: auto; 
+.icon-svg {
+  width: 60px;
+  height: 60px;
+  opacity: 0.7;
+}
+
+/* tubo MÁS GRANDE */
+.rubens-svg {
   width: 100%;
-  max-width: 450px; /* El tubo ahora es grande y protagonista */
+  max-width: 600px;
 }
 
 /* ARREGLO DE LAS LLAMAS (Movimiento y tamaño base) */
@@ -72,8 +43,7 @@ body { background: #0a0a0a; color: white; font-family: sans-serif; margin: 0; pa
   transition: transform 0.05s ease-out; /* Más reactivo a la música */
 }
 
-/* ARREGLO DE COLOR (Usamos colores sólidos para evitar el error de SVG vacío) */
-.purple { fill: #b000ff; filter: drop-shadow(0 0 8px #b000ff); }
-.blue   { fill: #00bbff; filter: drop-shadow(0 0 8px #00bbff); }
-.green  { fill: #00ff88; filter: drop-shadow(0 0 8px #00ff88); }
-.yellow { fill: #ffb400; filter: drop-shadow(0 0 8px #ffb400); }
+.flame {
+  transform-origin: bottom;
+  transition: transform 0.1s linear;
+}
