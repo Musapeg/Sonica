@@ -1,57 +1,49 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const audio = document.getElementById('audioElement');
-    const btn = document.getElementById('playButton');
-    const flames = document.querySelectorAll('.flame');
-    
-    let audioCtx, analyser, dataArray, source;
+const audio = document.getElementById("audioElement");
+const button = document.getElementById("playButton");
 
-    btn.addEventListener('click', async () => {
-        try {
-            // 1. Iniciar motor de audio
-            if (!audioCtx) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioCtx = new AudioContext();
-                analyser = audioCtx.createAnalyser();
-                
-                source = audioCtx.createMediaElementSource(audio);
-                source.connect(analyser);
-                analyser.connect(audioCtx.destination);
-                
-                analyser.fftSize = 64; 
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-            }
+let analyser, dataArray;
 
-            // 2. Despertar audio si el navegador lo bloqueó
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
+button.addEventListener("click", async () => {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = ctx.createMediaElementSource(audio);
 
-            // 3. Reproducir o Pausar
-            if (audio.paused) {
-                await audio.play();
-                btn.innerText = "⏸ PAUSAR";
-                render();
-            } else {
-                audio.pause();
-                btn.innerText = "▶ REPRODUCIR";
-            }
-        } catch (error) {
-            console.error("Error crítico de audio:", error);
-            alert("No se pudo reproducir. Asegúrate de que tu archivo se llame exactamente 'musica.mp3' en GitHub.");
-        }
-    });
+  analyser = ctx.createAnalyser();
+  analyser.fftSize = 128;
 
-    function render() {
-        if (audio.paused) return;
-        requestAnimationFrame(render);
-        
-        analyser.getByteFrequencyData(dataArray);
+  const bufferLength = analyser.frequencyBinCount;
+  dataArray = new Uint8Array(bufferLength);
 
-        flames.forEach((flame, i) => {
-            let index = Math.floor(i * (dataArray.length / flames.length));
-            let val = dataArray[index] / 150; 
-            flame.style.transform = `scaleY(${0.3 + val})`;
-        });
-    }
+  src.connect(analyser);
+  analyser.connect(ctx.destination);
+
+  audio.play();
 });
 
+const flames = document.querySelectorAll(".flame");
+
+function animateFlames() {
+  requestAnimationFrame(animateFlames);
+
+  if (!analyser) return;
+
+  analyser.getByteFrequencyData(dataArray);
+
+  flames.forEach((flame, i) => {
+    const value = dataArray[i % dataArray.length];
+
+    const scale = value / 255;
+
+    flame.style.transform = `scaleY(${1 + scale * 3})`;
+
+    // CAMBIO DE COLOR (simulación de sales)
+    if (value < 85) {
+      flame.setAttribute("fill", "#00bbff"); // azul (cobre)
+    } else if (value < 170) {
+      flame.setAttribute("fill", "#ffb400"); // naranja (sodio)
+    } else {
+      flame.setAttribute("fill", "#b000ff"); // violeta (potasio)
+    }
+  });
+}
+
+animateFlames();
