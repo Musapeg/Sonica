@@ -1,3 +1,7 @@
+<link rel="stylesheet" href="style.css">
+
+<script src="script.js" defer></script>
+
 <title>SÓNICA — Donde el sonido se vuelve visible</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Bebas+Neue&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
